@@ -1,0 +1,115 @@
+Design objective: The goal of this design is an Exodus II file that will 
+support data transfer of multiple, sweepable volumes from Cubit to pCamal
+for meshing.
+
+Requirements:
+1. File is in Exodus II format
+2. File contains all information necessary to sweep each volume, i.e.,
+   points, boundary elements identified as source surface(s), linking surface,
+   and target surface.
+3. File contains node sets and side sets used to define boundary conditions
+
+
+pCamal Exodus II file
+=====================
+
+Global parameters
+-----------------
+Title:				defined by user
+Number of nodes:		number of nodal coordinates
+Problem dimension:		3
+Number of elements:		sum of elements in element blocks
+Number of element blocks:	number of sweepable volumes
+Number of nodes sets:		number of sweepable volumes + defined node sets
+Number of side sets:		number of sweepable volumes + defined sids sets
+Database version number:	program defined
+API version number:		program defined
+I/O word size:			8 bytes
+Length of character strings:	32
+Length of character lines:	80
+
+Quality Assurance data
+----------------------
+Code name:		Cubit
+Code QA descriptor:	Cubit/pCamal interface output
+Date:			today's date
+Time:			today's time
+
+Information data
+----------------
+N/A
+
+Nodal coordinates
+-----------------
+for all coordinates on boundary surface of all sweepable volumes
+  x, y, z 
+
+Node number map
+---------------
+for each internal ID
+  Cubit node number
+
+Element number map
+------------------
+N/A
+
+Optimized element order map
+---------------------------
+N/A
+
+Element blocks
+--------------
+Element block ID:	1 to number blocks
+Element type:		SHELL
+Number of elements:	number of quads on boundary of this sweepable volume
+Nodes per element:	4
+Number of attributes:	0
+
+Element Connectivity:
+for all elements in this sweepable volume
+  n1, n2, n3, n4
+
+Element Attributes:     N/A
+
+Node sets
+---------
+Node set ID:		1 to number blocks
+			(additional node sets defined by user)
+Number of nodes:	number of nodes on boundary of this sweepable volume
+Number of distribution factors: 0
+
+Node set node list
+for each node  on boundary of this sweepable volume
+  internal ID of nodes
+
+Node set distribution factors: N/A
+
+Side sets
+---------
+Side set ID:		1 to sum of number of souce, linking, target surfaces
+			(additional side sets defined by user)
+Number of sides:	number of quads on boundary of this sweepable volume
+Number of distribution factors: 0
+
+Side set element list
+for each element on boudnary of this sweeable volume
+  internal element id 
+
+Side set side list
+for each element on boundary of this sweepable volume
+  1 (face of shell element)
+
+Side set distribution factors
+-----------------------------
+N/A
+
+
+Object properties
+-----------------
+Name	EB1	EBn	NS1	NSn	SS1	SS2	SS3	...	SSm
+ID	1	n	1	n	1	2	3		m
+Vol1	1	0	1	0	1	2	3	0	0
+Vol2	0
+Vol3	0
+...
+Voln	0	1	0	1	0	0	0	1	3
