@@ -25,13 +25,13 @@ Number of side sets:		number of sweepable volumes + defined sids sets
 Database version number:	program defined
 API version number:		program defined
 I/O word size:			8 bytes
-Length of character strings:	32
-Length of character lines:	80
+Length of character strings:	MAX_STR_LENGTH
+Length of character lines:	MAX_LINE_LENGTH
 
 Quality Assurance data
 ----------------------
-Code name:		Cubit
-Code QA descriptor:	Cubit/pCamal interface output
+Code name:		Cubit/pCamal
+Code QA descriptor:	Cubit version no.
 Date:			today's date
 Time:			today's time
 
@@ -59,7 +59,7 @@ N/A
 
 Element blocks
 --------------
-Element block ID:	1 to number blocks
+Element block ID:	unique ID assigned by Cubit
 Element type:		SHELL
 Number of elements:	number of quads on boundary of this sweepable volume
 Nodes per element:	4
@@ -73,7 +73,7 @@ Element Attributes:     N/A
 
 Node sets
 ---------
-Node set ID:		1 to number blocks
+Node set ID:		unique ID assigned by Cubit (num. blocks node sets)
 			(additional node sets defined by user)
 Number of nodes:	number of nodes on boundary of this sweepable volume
 Number of distribution factors: 0
@@ -86,7 +86,7 @@ Node set distribution factors: N/A
 
 Side sets
 ---------
-Side set ID:		1 to sum of number of souce, linking, target surfaces
+Side set ID:		unique ID assigned by Cubit (num. blocks x 3 side sets)
 			(additional side sets defined by user)
 Number of sides:	number of quads on boundary of this sweepable volume
 Number of distribution factors: 0
@@ -106,10 +106,14 @@ N/A
 
 Object properties
 -----------------
-Name	EB1	EBn	NS1	NSn	SS1	SS2	SS3	...	SSm
-ID	1	n	1	n	1	2	3		m
-Vol1	1	0	1	0	1	2	3	0	0
-Vol2	0
-Vol3	0
-...
-Voln	0	1	0	1	0	0	0	1	3
+Name	EB1	...	EBn	NS1	...	NSn	SS1	SS2	SS3	...	SSm
+ID	1	...	n	1	...	n	1	2	3		m
+SweepID	5	...	3	5	...	3	5	5	5		3
+SurfType						1	2	3	...	3
+
+The SweepID identifies the element block, node set, and side sets associated
+with each sweepable block. Blocks and sets of the same sweepable volume will
+have the same value, e.g., 5.
+
+The SurfaceType identifies the side sets as source (1), linking (2) or
+target (3) elements.
