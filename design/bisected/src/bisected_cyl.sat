@@ -1,0 +1,380 @@
+201 0 2 0           
+14 Cubit 2.0.3-28 16 ACIS 2.1 Solaris 24 Wed Oct 29 09:44:18 1997 
+-1 9.999999999999999547e-07 1.000000000000000036e-10 
+body $2 $3 $-1 $4 #
+body $5 $6 $-1 $7 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $0 #
+lump $8 $-1 $9 $0 #
+transform $-1 1 0 0 0 1 0 0 0 1 0 0 0 1 no_rotate no_reflect no_shear #
+cubit_owner-snl-attrib $-1 $-1 $-1 $1 #
+lump $10 $-1 $11 $1 #
+transform $-1 1 0 0 0 1 0 0 0 1 0 0 0 1 no_rotate no_reflect no_shear #
+cubit_owner-snl-attrib $-1 $-1 $-1 $3 #
+shell $12 $-1 $-1 $13 $-1 $3 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $6 #
+shell $14 $-1 $-1 $15 $-1 $6 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $9 #
+face $16 $17 $18 $9 $-1 $19 forward single #
+cubit_owner-snl-attrib $-1 $-1 $-1 $11 #
+face $20 $21 $22 $11 $-1 $23 forward single #
+fmesh-eye-attrib $-1 $24 $-1 $13 #
+face $25 $26 $27 $9 $-1 $19 forward single #
+loop $28 $-1 $29 $13 #
+plane-surface $-1 0 0 0 0 -1 0 0 0 -1 forward_v I I I I #
+fmesh-eye-attrib $-1 $30 $-1 $15 #
+face $31 $32 $33 $11 $-1 $23 forward single #
+loop $34 $-1 $35 $15 #
+plane-surface $-1 0 0 0 1.224646799147353207e-16 1 0 -0 0 -1 forward_v I I I I #
+cubit_owner-snl-attrib $-1 $36 $16 $13 #
+fmesh-eye-attrib $-1 $37 $-1 $17 #
+face $38 $39 $40 $9 $-1 $41 forward single #
+loop $42 $-1 $43 $17 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $18 #
+coedge $44 $45 $46 $47 $48 1 $18 $-1 #
+cubit_owner-snl-attrib $-1 $49 $20 $15 #
+fmesh-eye-attrib $-1 $50 $-1 $21 #
+face $51 $52 $53 $11 $-1 $54 forward single #
+loop $55 $-1 $56 $21 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $22 #
+coedge $57 $58 $59 $60 $61 1 $22 $-1 #
+fmesh-eye-attrib $-1 $62 $24 $13 #
+cubit_owner-snl-attrib $-1 $63 $25 $17 #
+fmesh-eye-attrib $-1 $64 $-1 $26 #
+face $65 $66 $67 $9 $-1 $68 reversed single #
+loop $69 $-1 $70 $26 #
+plane-surface $-1 0 0 2 0 0 1 1 0 0 forward_v I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $27 #
+coedge $71 $72 $73 $74 $75 1 $27 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $29 #
+coedge $76 $77 $29 $78 $79 1 $18 $-1 #
+coedge $80 $29 $77 $81 $82 1 $18 $-1 #
+coedge $83 $84 $85 $29 $48 0 $86 $-1 #
+edge $87 $88 $89 $47 $90 forward #
+fmesh-eye-attrib $-1 $91 $30 $15 #
+cubit_owner-snl-attrib $-1 $92 $31 $21 #
+fmesh-eye-attrib $-1 $93 $-1 $32 #
+face $94 $95 $96 $11 $-1 $97 reversed single #
+loop $98 $-1 $99 $32 #
+plane-surface $-1 0 0 2 0 0 1 -1 1.224646799147353207e-16 0 forward_v I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $33 #
+coedge $100 $101 $102 $103 $104 1 $33 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $35 #
+coedge $105 $106 $35 $107 $108 1 $22 $-1 #
+coedge $109 $35 $106 $110 $111 1 $22 $-1 #
+coedge $112 $113 $114 $35 $61 0 $115 $-1 #
+edge $116 $117 $118 $60 $119 forward #
+ref_vt-eye-attrib $-1 $-1 $36 $13 $120 $-1 #
+fmesh-eye-attrib $-1 $121 $37 $17 #
+cubit_owner-snl-attrib $-1 $122 $38 $26 #
+fmesh-eye-attrib $-1 $123 $-1 $39 #
+face $124 $125 $86 $9 $-1 $126 forward single #
+loop $127 $-1 $128 $39 #
+cone-surface $-1 0 0 0 0 0 1 1 0 0 1 I I 0 1 forward I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $40 #
+coedge $129 $130 $131 $72 $132 0 $40 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $43 #
+coedge $133 $134 $43 $70 $132 1 $27 $-1 #
+coedge $135 $43 $134 $136 $137 1 $27 $-1 #
+coedge $138 $85 $84 $43 $75 0 $86 $-1 #
+edge $139 $140 $141 $74 $142 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $45 #
+coedge $143 $46 $45 $144 $145 1 $18 $-1 #
+coedge $146 $147 $148 $45 $79 0 $149 $-1 #
+edge $150 $151 $88 $78 $152 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $46 #
+coedge $153 $131 $130 $46 $82 0 $40 $-1 #
+edge $154 $89 $155 $81 $156 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $47 #
+coedge $157 $74 $47 $130 $158 1 $86 $-1 #
+coedge $159 $47 $74 $147 $160 1 $86 $-1 #
+loop $161 $-1 $74 $66 #
+cubit_owner-snl-attrib $-1 $162 $-1 $48 #
+vertex $163 $160 $164 #
+vertex $165 $48 $166 #
+straight-curve $-1 -2 0 0 0 0 1 I I #
+fmesh-eye-attrib $-1 $167 $49 $15 #
+fmesh-eye-attrib $-1 $168 $50 $21 #
+cubit_owner-snl-attrib $-1 $169 $51 $32 #
+fmesh-eye-attrib $-1 $170 $-1 $52 #
+face $171 $172 $115 $11 $-1 $173 forward single #
+loop $174 $-1 $175 $52 #
+cone-surface $-1 0 0 0 0 0 1 -1 1.224646799147353207e-16 0 1 I I 0 1 forward I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $53 #
+coedge $176 $177 $178 $101 $179 0 $53 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $56 #
+coedge $180 $181 $56 $99 $179 1 $33 $-1 #
+coedge $182 $56 $181 $183 $184 1 $33 $-1 #
+coedge $185 $114 $113 $56 $104 0 $115 $-1 #
+edge $186 $187 $188 $103 $189 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $58 #
+coedge $190 $59 $58 $191 $192 1 $22 $-1 #
+coedge $193 $194 $195 $58 $108 0 $196 $-1 #
+edge $197 $198 $117 $107 $199 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $59 #
+coedge $200 $178 $177 $59 $111 0 $53 $-1 #
+edge $201 $118 $202 $110 $203 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $60 #
+coedge $204 $103 $60 $177 $205 1 $115 $-1 #
+coedge $206 $60 $103 $194 $207 1 $115 $-1 #
+loop $208 $-1 $103 $95 #
+cubit_owner-snl-attrib $-1 $209 $-1 $61 #
+vertex $210 $207 $211 #
+vertex $212 $61 $213 #
+straight-curve $-1 2 -2.449293598294706414e-16 0 0 0 1 I I #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.1236931681632995605 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+fmesh-eye-attrib $-1 $214 $63 $17 #
+fmesh-eye-attrib $-1 $215 $64 $26 #
+cubit_owner-snl-attrib $-1 $216 $65 $39 #
+fmesh-eye-attrib $-1 $217 $-1 $66 #
+face $218 $-1 $149 $9 $-1 $219 forward single #
+cone-surface $-1 0 0 0 0 0 1 2 0 0 1 I I 0 1 forward I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $67 #
+coedge $220 $221 $222 $134 $223 0 $67 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $70 #
+coedge $224 $81 $70 $84 $158 0 $40 $-1 #
+coedge $225 $70 $81 $221 $226 0 $40 $-1 #
+edge $227 $228 $140 $70 $229 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $72 #
+coedge $230 $73 $72 $128 $223 1 $27 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $73 #
+coedge $231 $148 $147 $73 $137 0 $149 $-1 #
+edge $232 $141 $233 $136 $234 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $74 #
+cubit_owner-snl-attrib $-1 $235 $-1 $75 #
+vertex $236 $75 $237 #
+vertex $238 $160 $239 #
+straight-curve $-1 2 0 0 -0 -0 -1 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $77 #
+coedge $240 $222 $221 $77 $145 0 $67 $-1 #
+edge $241 $155 $151 $144 $242 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $78 #
+coedge $243 $136 $78 $85 $160 0 $149 $-1 #
+coedge $244 $78 $136 $222 $245 0 $149 $-1 #
+loop $246 $-1 $136 $125 #
+cubit_owner-snl-attrib $-1 $247 $-1 $79 #
+vertex $248 $79 $249 #
+straight-curve $-1 0 0 -2 -1 -0 -0 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $81 #
+cubit_owner-snl-attrib $-1 $250 $-1 $82 #
+vertex $251 $226 $252 #
+straight-curve $-1 0 0 2 1 0 -0 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $84 #
+edge $253 $140 $89 $130 $254 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $85 #
+edge $255 $88 $141 $147 $256 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $86 #
+ptlist-eye-attrib $-1 $-1 $87 $48 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $88 #
+point $-1 -2 0 -2 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $89 #
+point $-1 -2 0 2 #
+ref_vt-eye-attrib $-1 $-1 $91 $15 $257 $-1 #
+fmesh-eye-attrib $-1 $258 $92 $21 #
+fmesh-eye-attrib $-1 $259 $93 $32 #
+cubit_owner-snl-attrib $-1 $260 $94 $52 #
+fmesh-eye-attrib $-1 $261 $-1 $95 #
+face $262 $-1 $196 $11 $-1 $263 forward single #
+cone-surface $-1 0 0 0 0 0 1 -2 2.449293598294706414e-16 0 1 I I 0 1 forward I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $96 #
+coedge $264 $265 $266 $181 $267 0 $96 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $99 #
+coedge $268 $110 $99 $113 $205 0 $53 $-1 #
+coedge $269 $99 $110 $265 $270 0 $53 $-1 #
+edge $271 $272 $187 $99 $273 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $101 #
+coedge $274 $102 $101 $175 $267 1 $33 $-1 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $102 #
+coedge $275 $195 $194 $102 $184 0 $196 $-1 #
+edge $276 $188 $277 $183 $278 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $103 #
+cubit_owner-snl-attrib $-1 $279 $-1 $104 #
+vertex $280 $104 $281 #
+vertex $282 $207 $283 #
+straight-curve $-1 -2 2.449293598294706414e-16 0 0 0 -1 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $106 #
+coedge $284 $266 $265 $106 $192 0 $96 $-1 #
+edge $285 $202 $198 $191 $286 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $107 #
+coedge $287 $183 $107 $114 $207 0 $196 $-1 #
+coedge $288 $107 $183 $266 $289 0 $196 $-1 #
+loop $290 $-1 $183 $172 #
+cubit_owner-snl-attrib $-1 $291 $-1 $108 #
+vertex $292 $108 $293 #
+straight-curve $-1 0 0 -2 1 -1.224646799147353207e-16 -0 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $110 #
+cubit_owner-snl-attrib $-1 $294 $-1 $111 #
+vertex $295 $270 $296 #
+straight-curve $-1 0 0 2 -1 1.224646799147353207e-16 0 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $113 #
+edge $297 $187 $118 $177 $298 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $114 #
+edge $299 $117 $188 $194 $300 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $115 #
+ptlist-eye-attrib $-1 $-1 $116 $61 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $117 #
+point $-1 2 -2.449293598294706414e-16 -2 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $118 #
+point $-1 2 -2.449293598294706414e-16 2 #
+ref_vt-eye-attrib $-1 $-1 $121 $17 $301 $-1 #
+ref_vt-eye-attrib $-1 $-1 $122 $26 $302 $-1 #
+fmesh-eye-attrib $-1 $303 $123 $39 #
+cubit_owner-snl-attrib $-1 $304 $124 $66 #
+fmesh-eye-attrib $-1 $305 $-1 $125 #
+plane-surface $-1 0 0 -2 0 0 -1 -1 0 0 forward_v I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $128 #
+coedge $306 $144 $128 $131 $226 1 $67 $-1 #
+coedge $307 $128 $144 $148 $245 1 $67 $-1 #
+edge $308 $233 $228 $128 $309 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $130 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $131 #
+edge $310 $155 $228 $131 $311 forward #
+cubit_owner-snl-attrib $-1 $312 $-1 $132 #
+vertex $313 $226 $314 #
+straight-curve $-1 0 0 2 1 0 -0 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $134 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $136 #
+cubit_owner-snl-attrib $-1 $315 $-1 $137 #
+vertex $316 $137 $317 #
+straight-curve $-1 0 0 -2 -1 -0 -0 I I #
+ptlist-eye-attrib $-1 $-1 $139 $75 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $140 #
+point $-1 2 0 2 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $141 #
+point $-1 2 0 -2 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $144 #
+cubit_owner-snl-attrib $-1 $318 $-1 $145 #
+straight-curve $-1 -1 0 0 0 -0 -1 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $147 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $148 #
+edge $319 $233 $151 $148 $320 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $149 #
+ptlist-eye-attrib $-1 $-1 $150 $79 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $151 #
+point $-1 -1 0 -2 #
+ptlist-eye-attrib $-1 $-1 $154 $82 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $155 #
+point $-1 -1 0 2 #
+cubit_owner-snl-attrib $-1 $321 $-1 $158 #
+ellipse-curve $-1 0 0 2 0 0 1 2 0 0 1 I I #
+cubit_owner-snl-attrib $-1 $322 $-1 $160 #
+ellipse-curve $-1 0 0 -2 0 0 -1 2 0 0 1 I I #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.1236931681632995605 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+fmesh-eye-attrib $-1 $323 $168 $21 #
+fmesh-eye-attrib $-1 $324 $169 $32 #
+fmesh-eye-attrib $-1 $325 $170 $52 #
+cubit_owner-snl-attrib $-1 $326 $171 $95 #
+fmesh-eye-attrib $-1 $327 $-1 $172 #
+plane-surface $-1 0 0 -2 -0 0 -1 1 -1.224646799147353207e-16 0 forward_v I I I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $175 #
+coedge $328 $191 $175 $178 $270 1 $96 $-1 #
+coedge $329 $175 $191 $195 $289 1 $96 $-1 #
+edge $330 $277 $272 $175 $331 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $177 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $178 #
+edge $332 $202 $272 $178 $333 forward #
+cubit_owner-snl-attrib $-1 $334 $-1 $179 #
+vertex $335 $270 $336 #
+straight-curve $-1 0 0 2 -1 1.224646799147353207e-16 0 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $181 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $183 #
+cubit_owner-snl-attrib $-1 $337 $-1 $184 #
+vertex $338 $184 $339 #
+straight-curve $-1 0 0 -2 1 -1.224646799147353207e-16 -0 I I #
+ptlist-eye-attrib $-1 $-1 $186 $104 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $187 #
+point $-1 -2 2.449293598294706414e-16 2 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $188 #
+point $-1 -2 2.449293598294706414e-16 -2 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $191 #
+cubit_owner-snl-attrib $-1 $340 $-1 $192 #
+straight-curve $-1 1 -1.224646799147353207e-16 0 0 0 -1 I I #
+cubit_owner-snl-attrib $-1 $-1 $-1 $194 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $195 #
+edge $341 $277 $198 $195 $342 forward #
+cubit_owner-snl-attrib $-1 $-1 $-1 $196 #
+ptlist-eye-attrib $-1 $-1 $197 $108 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $198 #
+point $-1 1 -1.224646799147353207e-16 -2 #
+ptlist-eye-attrib $-1 $-1 $201 $111 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $202 #
+point $-1 1 -1.224646799147353207e-16 2 #
+cubit_owner-snl-attrib $-1 $343 $-1 $205 #
+ellipse-curve $-1 0 0 2 0 0 1 -2 2.449293598294706414e-16 0 1 I I #
+cubit_owner-snl-attrib $-1 $344 $-1 $207 #
+ellipse-curve $-1 0 0 -2 -0 0 -1 -2 2.449293598294706414e-16 0 1 I I #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.1236931681632995605 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.134164080023765564 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+ref_vt-eye-attrib $-1 $-1 $216 $39 $345 $-1 #
+fmesh-eye-attrib $-1 $346 $217 $66 #
+cubit_owner-snl-attrib $-1 $347 $218 $125 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $221 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $222 #
+cubit_owner-snl-attrib $-1 $348 $-1 $223 #
+straight-curve $-1 1 0 0 0 0 1 I I #
+cubit_owner-snl-attrib $-1 $349 $-1 $226 #
+ellipse-curve $-1 0 0 2 -0 -0 -1 1 0 0 1 I I #
+ptlist-eye-attrib $-1 $-1 $227 $132 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $228 #
+point $-1 1 0 2 #
+ptlist-eye-attrib $-1 $-1 $232 $137 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $233 #
+point $-1 1 0 -2 #
+ptlist-eye-attrib $-1 $-1 $241 $145 #
+cubit_owner-snl-attrib $-1 $350 $-1 $245 #
+ellipse-curve $-1 0 0 -2 -0 -0 1 1 0 0 1 I I #
+ptlist-eye-attrib $-1 $-1 $253 $158 #
+ptlist-eye-attrib $-1 $-1 $255 $160 #
+ref_vt-eye-attrib $-1 $-1 $258 $21 $351 $-1 #
+ref_vt-eye-attrib $-1 $-1 $259 $32 $352 $-1 #
+fmesh-eye-attrib $-1 $353 $260 $52 #
+fmesh-eye-attrib $-1 $354 $261 $95 #
+cubit_owner-snl-attrib $-1 $355 $262 $172 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $265 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $266 #
+cubit_owner-snl-attrib $-1 $356 $-1 $267 #
+straight-curve $-1 -1 1.224646799147353207e-16 0 0 0 1 I I #
+cubit_owner-snl-attrib $-1 $357 $-1 $270 #
+ellipse-curve $-1 0 0 2 0 0 -1 -1 1.224646799147353207e-16 0 1 I I #
+ptlist-eye-attrib $-1 $-1 $271 $179 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $272 #
+point $-1 -1 1.224646799147353207e-16 2 #
+ptlist-eye-attrib $-1 $-1 $276 $184 #
+cubit_owner-snl-attrib $-1 $-1 $-1 $277 #
+point $-1 -1 1.224646799147353207e-16 -2 #
+ptlist-eye-attrib $-1 $-1 $285 $192 #
+cubit_owner-snl-attrib $-1 $358 $-1 $289 #
+ellipse-curve $-1 0 0 -2 0 0 1 -1 1.224646799147353207e-16 0 1 I I #
+ptlist-eye-attrib $-1 $-1 $297 $205 #
+ptlist-eye-attrib $-1 $-1 $299 $207 #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.1374772638082504272 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+fmesh-eye-attrib $-1 $359 $304 $66 #
+fmesh-eye-attrib $-1 $360 $305 $125 #
+ptlist-eye-attrib $-1 $-1 $308 $223 #
+ptlist-eye-attrib $-1 $-1 $310 $226 #
+ptlist-eye-attrib $-1 $-1 $319 $245 #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.1236931681632995605 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.134164080023765564 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+ref_vt-eye-attrib $-1 $-1 $325 $52 $361 $-1 #
+fmesh-eye-attrib $-1 $362 $326 $95 #
+fmesh-eye-attrib $-1 $363 $327 $172 #
+ptlist-eye-attrib $-1 $-1 $330 $267 #
+ptlist-eye-attrib $-1 $-1 $332 $270 #
+ptlist-eye-attrib $-1 $-1 $341 $289 #
+fmesh-eye-attrib $-1 $364 $346 $66 #
+fmesh-eye-attrib $-1 $365 $347 $125 #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.1374772638082504272 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+fmesh-eye-attrib $-1 $366 $354 $95 #
+fmesh-eye-attrib $-1 $367 $355 $172 #
+ref_vt-eye-attrib $-1 $-1 $359 $66 $368 $-1 #
+fmesh-eye-attrib $-1 $369 $360 $125 #
+fmesh-eye-attrib $-1 $370 $362 $95 #
+fmesh-eye-attrib $-1 $371 $363 $172 #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.180000007152557373 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+ref_vt-eye-attrib $-1 $-1 $365 $125 $372 $-1 #
+ref_vt-eye-attrib $-1 $-1 $366 $95 $373 $-1 #
+fmesh-eye-attrib $-1 $374 $367 $172 #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.134164080023765564 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.180000007152557373 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+ref_vt-eye-attrib $-1 $-1 $371 $172 $375 $-1 #
+eye_refinement $-1 5 grid  1 3 tri 1 4 surf 0 3 adj 1 4 grad 0 9 postcheck 0 4 stol 0.134164080023765564 4 ntol 15 4 dsil 0 8 flatness 0 7 pixarea 0 4 hmax 0 6 gridar 0 5 mgrid 10 10 end_fields #
+End-of-ACIS-data 
