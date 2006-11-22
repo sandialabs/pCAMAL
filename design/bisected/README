@@ -1,0 +1,37 @@
+This directory (./bisected) contains source code to covert a ExodusII file
+written by Cubit to a form that pCAMAL understands. (See the file description
+in ../file_format.txt.)
+
+The following steps will build the program in a separate directory.
+
+1) mkdir build
+
+2) cd build
+
+3) ccmake ../src
+	selected the options and configure the file as needed
+
+4) make
+
+You should now have the executable bisected-file in the build directory.
+
+To generate the input file for bisected-file, execute the following commands
+in ./src.
+
+1) cubit -nographics -batch bisected_cyl.pcamal.jou
+
+You should now have the ExodusII file bisected_cyl.pcamal.g in the src
+directory.
+
+2) cp bisected_cyl.g ../build
+
+Finally, generate the pCAMAL file in the build directory.
+
+1) bisected-file -f bisected_cyl.g -o bisected_cyl.pcamal.g
+
+bisected_cyl.pcamal.g should be equivalent to
+../../bisected_cyl.pcamal.g except for date and time generated.
+
+bisected_cyl.pcamal.g is the input to the pcamal_test program in the directory
+./pcamal_test.
+

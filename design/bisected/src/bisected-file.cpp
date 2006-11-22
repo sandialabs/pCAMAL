@@ -52,7 +52,7 @@ int main(int argc, char **argv)
           break;
       case 'h':
       default:
-          printf("Usage: readfile [OPTION]\n");
+          printf("Usage: bisected-file [OPTION]\n");
           printf("   -f <filename>  read from this file\n");
           printf("   -o <filename>  write to this file\n");
           printf("   -u             update file QA and object properties\n");

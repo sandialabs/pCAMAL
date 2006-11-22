@@ -32,4 +32,4 @@ sideset 210 surface 1 2 10 11
 sideset 220 surface 12
 
 # write exodus file
-export genesis 'bisected_cyl.pcamal.g' block 100 200 overwrite
+export genesis 'bisected_cyl.g' block 100 200 overwrite
