@@ -23,7 +23,7 @@ int main(int argc, char **argv)
         // useage
       case 'h':
       default:
-          printf("Useage: test_pc [OPTIONS]\n");
+          printf("Useage: pcamal_test [OPTIONS]\n");
           printf("\t-i <filename>  input file name\n");
           printf("\t-o <filename>  output file basename\n");
           printf("\t-v             verbose output\n");

@@ -1,0 +1,32 @@
+This directory (./pcamal_test) contains a test of the pCAMAL ExodusII file
+format as an interface to the CAMAL sweeper. This is a serial implementation
+only.
+
+The following commands will build the test program. (NOTE: pcamal_test
+requires updated version of the CAMAL libraries. pcamal_test complains of
+missing class methods, you do not have the latest libraries.)
+
+1) mkdir build
+
+2) cd build
+
+3) ccmake ../src
+	select the desired options and configure
+
+4) make
+
+You should now have pcamal_test in your build directory.
+
+To generate the swept mesh from bisected_cyl.pcamal.g, do the following in
+the build directory.
+
+1) cp ../../bisected_cyl_pcamal.g .
+
+2) ./pcamal_test -i bisected_cyl.pcamal.g -o bisected.sweep
+
+You should see two additional files in the build directory, 
+bisected.sweep.vol001.g and bisected.sweep.vol002.g. These two files contain
+the hex mesh for each half of the thick walled cylinder.
+
+You can look at them in Cubit if you import the ACIS file, bisected_cyl.sat,
+and then import both meshes with the "import mesh" command.
