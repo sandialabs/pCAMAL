@@ -1,9 +1,8 @@
 PROJECT(bisected-file)
 
-SET(CUBIT_DIR /usr/local/eng_sci/cubit)
-SET(EXODUS_VER 4.01)
-SET(EXODUS_DIR ${CUBIT_DIR}/exodus/exodus-${EXODUS_VER})
-SET(NETCDF_DIR ${CUBIT_DIR}/netcdf/netcdf-3.4.snl3)
+SET(PCAMAL_DIR /home/mbsteph/pcamal)
+SET(EXODUS_DIR ${PCAMAL_DIR}/utilities/exodus/exodus-4.01)
+SET(NETCDF_DIR ${PCAMAL_DIR}/utilities/netcdf-3.4.snl3)
 
 SET(SOURCE bisected-file.cpp)
 
