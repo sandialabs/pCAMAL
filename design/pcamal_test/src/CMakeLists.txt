@@ -1,6 +1,7 @@
 PROJECT(pcamal_test)
 
-SET(PCAMAL_DIR /home/mbsteph/pcamal)
+SET(PCAMAL_DIR CACHE FILEPATH "PCamal top-level directory.")
+
 SET(CAMAL_DIR ${PCAMAL_DIR}/utilities/camal)
 SET(EXODUS_DIR ${PCAMAL_DIR}/utilities/exodus/exodus-4.01)
 SET(NETCDF_DIR ${PCAMAL_DIR}/utilities/netcdf-3.4.snl3)
