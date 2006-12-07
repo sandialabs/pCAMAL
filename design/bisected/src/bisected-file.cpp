@@ -272,8 +272,8 @@ int copy_qa_rec(int exo_in, int exo_out, bool update)
           strftime(camal_time, MAX_STR_LENGTH, "%H:%M:%S", timeptr);
     
             // write pCamal QA record
-          strcpy(qa[num_qa][0], "pCAMAL Interface file");
-          strcpy(qa[num_qa][1], "1.0a");
+          strcpy(qa[num_qa][0], "BISECTED-FILE");
+          strcpy(qa[num_qa][1], "1.1");
           strcpy(qa[num_qa][2], camal_date);
           strcpy(qa[num_qa][3], camal_time);
           ++num_qa;

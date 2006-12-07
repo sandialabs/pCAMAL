@@ -10,6 +10,8 @@
 #include "PCExodusFile.hpp"
 #include "CMLSweeper.hpp"
 
+void convert_conn(int num_hexes, int* connect);
+
 int main(int argc, char **argv)
 {
     // parse command line arguments
@@ -175,6 +177,9 @@ int main(int argc, char **argv)
     PCExodusFile exo_out(filename, pce::create);
     exo_out.put_param(num_points_out, num_hexes);
     exo_out.put_coor(num_points_out, x_coor, y_coor, z_coor);
+
+      // convert connectivity to exodus (PATRAN) order
+    convert_conn(num_hexes, connect);
     exo_out.put_hex_blk(num_hexes, connect);
     
       // delete memory
@@ -188,4 +193,20 @@ int main(int argc, char **argv)
     // clean-up
   delete [] filein;
   delete [] fileout;
+}
+
+void convert_conn(int num_hexes, int* connect)
+{
+  int tmp;
+  int *c = connect;
+  int i;
+  for (i = 0; i < num_hexes; i++) {
+    tmp  = c[2];
+    c[2] = c[5];
+    c[5] = tmp;
+    tmp  = c[3];
+    c[3] = c[4];
+    c[4] = tmp;
+    c += 8;
+  }
 }

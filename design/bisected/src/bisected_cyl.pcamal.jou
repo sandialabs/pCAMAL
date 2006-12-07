@@ -32,4 +32,5 @@ sideset 210 surface 1 2 10 11
 sideset 220 surface 12
 
 # write exodus file
-export genesis 'bisected_cyl.g' block 100 200 overwrite
+set developer command on
+export parallel 'bisected_cyl.g' block 100 200 overwrite
