@@ -1,5 +1,6 @@
 PROJECT(pcamal_test)
 
+SET(PCAMAL_OS CACHE STRING "Operating system (Linux, Linux64)")
 SET(PCAMAL_DIR CACHE FILEPATH "PCamal top-level directory.")
 
 SET(CAMAL_DIR ${PCAMAL_DIR}/utilities/camal)
@@ -14,9 +15,9 @@ INCLUDE_DIRECTORIES(
 	${NETCDF_DIR}/include
 	)
 LINK_DIRECTORIES(
-	${CAMAL_DIR}/lib
-	${EXODUS_DIR}/lib
-	${NETCDF_DIR}/lib
+	${CAMAL_DIR}/lib/${PCAMAL_OS}
+	${EXODUS_DIR}/lib/${PCAMAL_OS}
+	${NETCDF_DIR}/lib/${PCAMAL_OS}
 	)
 
 ADD_EXECUTABLE(pcamal_test ${SOURCE})
