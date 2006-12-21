@@ -7,21 +7,19 @@
 #include "PCExodusFile.hpp"
 #include "CMLSweeper.hpp"
 
-void ExecuteCAMAL( int isub, int myrank, int* nlocal, double* qlocal ) {
-}
-
-int ReadSubdomains( PCExodusFile* pc_input, int vol_id, bool verbose) {
-  // Read sweep block control
+int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id, 
+			      char* fileout, bool verbose) {
+  // Read sweep subdomain parameters
   int sweep_id, num_points, num_quads;
   pc_input->read_sweep_prop(vol_id, sweep_id, num_points, num_quads);
   if ( ! sweep_id )
     return 0;
   
   // Read coordinates
-  double *x_coor = new double[num_points];
-  double *y_coor = new double[num_points];
-  double *z_coor = new double[num_points];
-  int *node_ids = new int[num_points];
+  double x_coor[num_points];
+  double y_coor[num_points];
+  double z_coor[num_points];
+  int node_ids[num_points];
   pc_input->read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
 			    node_ids);
   if ( verbose ) {
@@ -44,7 +42,7 @@ int ReadSubdomains( PCExodusFile* pc_input, int vol_id, bool verbose) {
   printf( "  number target  = %d\n", num_tgt_surf);
   printf( "           total = %d\n", num_surfs);
   
-  int *num_surf_quads = new int[num_surfs];
+  int num_surf_quads[num_surfs];
   pc_input->read_sweep_surf_size(vol_id, num_surfs, num_surf_quads);
   int num_tgt_quads = 0;
   for ( int i = 0; i < num_src_surf; ++i )
@@ -55,7 +53,7 @@ int ReadSubdomains( PCExodusFile* pc_input, int vol_id, bool verbose) {
     printf( " %8d %8d\n", i+1, num_surf_quads[i]);
   }
   
-  int *connect = new int[num_quads * 4];
+  int connect[num_quads * 4];
   pc_input->read_sweep_conn(vol_id, num_quads, node_ids, connect);
   if ( verbose ) {
     printf( "\n           ---Connectivity---\n" );
@@ -66,13 +64,23 @@ int ReadSubdomains( PCExodusFile* pc_input, int vol_id, bool verbose) {
       c += 4;
     }
   }
-  
-  delete [] num_surf_quads;
-  delete [] connect;
-  delete [] node_ids;
-  delete [] z_coor;
-  delete [] y_coor;
-  delete [] x_coor;
+
+  //CMLSweeper sweeper;
+  //sweeper.set_boundary_mesh(num_points, x_coor, y_coor, z_coor,
+  //			    num_quads, connect,
+  //			    num_src_surf, num_surf_quads, num_tgt_quads);
+
+
+  int num_points_out, num_hexes;
+
+  // Write Exodus II output file
+  char filename[strlen( fileout ) + 10];
+  sprintf( filename, "%s.vol%03d.g", fileout, sweep_id );
+
+  PCExodusFile exo_out(filename, pce::create);
+  exo_out.put_param(num_points_out, num_hexes);
+  exo_out.put_coor(num_points_out, x_coor, y_coor, z_coor);
+  exo_out.put_hex_blk(num_hexes, connect);
 
   return 1;
 }
@@ -89,9 +97,6 @@ void CalculateGlobalStats( int nsub, int* nglobal, double* qglobal, int* nmesh, 
 //   *qmesh /= *nmesh;
 }
 
-void SaveLocalFiles( int isub, int myrank, int nlocal ) {
-}
-
 int main(int argc, char **argv) {
   int myrank, nprocs, nsub, isub, nmesh;
   int nlocal[1], *nglobal;
@@ -99,15 +104,15 @@ int main(int argc, char **argv) {
   char filein[50];
   char fileout[50];
   bool verbose = false;
-  int nlen = 0;
 
-  if ( argc < 3 ) {
-    printf( "Usage: pcamal_proto <n_subdomains> <filein>\n" );
+  if ( argc < 4 ) {
+    printf( "Usage: pcamal_proto <n_subdomains> <filein> <fileout>\n" );
     return 1;
   }
 
   nsub = atoi( argv[1] );
   strcpy( filein, argv[2] );
+  strcpy( fileout, argv[3] );
   nglobal = (int*) malloc( nsub * sizeof( int ) );
   qglobal = (double*) malloc( nsub * sizeof( double ) );
 
@@ -135,11 +140,14 @@ int main(int argc, char **argv) {
   // Visit each subdomain
   for ( int vol_id = 0; vol_id < num_blks; vol_id++) {
     if ( myrank == vol_id ) {
-      printf( "Process %d to handle subdomain %d\n", myrank, vol_id );
-      int sweepable = ReadSubdomains( &pc_input, vol_id, false );
-      if ( ! sweepable ) printf( "## Subdomain %d was not to be swept.\n", vol_id );
-     } 
-  } 
+      printf( "Process %d to handle subdomain %d.\n", myrank, vol_id );
+      int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, false );
+      if ( ! sweepable ) {
+	printf( "## Subdomain %d was not to be swept.\n", vol_id );
+	continue;
+      }
+    }
+  }
 
   MPI_Gather( nlocal, 1, MPI_INTEGER, nglobal, 1, MPI_INTEGER, 0, MPI_COMM_WORLD );
   MPI_Gather( qlocal, 1, MPI_DOUBLE_PRECISION, qglobal, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD );
@@ -154,20 +162,6 @@ int main(int argc, char **argv) {
     printf( "    total number of mesh elements: %d\n", nmesh );
     printf( "    average quality: %g\n", qmesh );
   }
-
-  // Just for the sake of synchronizing printouts:
-  MPI_Barrier( MPI_COMM_WORLD );
-  if ( ! myrank ) printf( "\n" );
-
-  for ( isub = 0; isub < nsub; ++ isub ) {
-    if ( isub == myrank ) {
-      SaveLocalFiles( isub, myrank, nlocal[0] );
-    }
-  }
-
-  // Just for the sake of synchronizing printouts:
-  MPI_Barrier( MPI_COMM_WORLD );
-  if ( ! myrank ) printf( "\n" );
 
   MPI_Finalize();
   return 0;
