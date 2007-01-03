@@ -25,7 +25,10 @@ int copy_side_sets(int exo_in, int exo_out, int num_side_sets,
                    bool update, bool verbose);
 int copy_elem_order_map(int exo_in, int exo_out, int num_quads, 
                         bool update, bool verbose);
-int write_obj_prop_rec(int exo_out);
+int copy_obj_prop_rec(int exo_in, int exo_out, int num_blks, 
+                      int num_node_sets, int num_side_sets, 
+                      bool update, bool verbose);
+void print_property(int num_ss_props, char *ss_prop_name, int*ss_prop_values);
 
 
 int main(int argc, char **argv)
@@ -144,8 +147,9 @@ int main(int argc, char **argv)
     error = copy_elem_order_map(exo_in, exo_out, num_elems, update, verbose);
   
     // write object properties for sweepable blocks
-  if (error == 0 && update)
-    error = write_obj_prop_rec(exo_out);
+  if (error == 0)
+    error = copy_obj_prop_rec(exo_in, exo_out, num_blks, num_node_sets,
+                              num_side_sets, update, verbose);
   
     // close file
   if (ex_close(exo_in) != 0)
@@ -273,7 +277,7 @@ int copy_qa_rec(int exo_in, int exo_out, bool update)
     
             // write pCamal QA record
           strcpy(qa[num_qa][0], "BISECTED-FILE");
-          strcpy(qa[num_qa][1], "1.1");
+          strcpy(qa[num_qa][1], "1.2");
           strcpy(qa[num_qa][2], camal_date);
           strcpy(qa[num_qa][3], camal_time);
           ++num_qa;
@@ -425,29 +429,141 @@ int copy_elem_blk_rec(int exo_in, int exo_out, int num_blks,
   return error;
 }
 
-int write_obj_prop_rec(int exo_out)
+int copy_obj_prop_rec(int exo_in, int exo_out, int num_blks, 
+                      int num_node_sets, int num_side_sets,
+                      bool update, bool verbose)
 {
+  float fdum;
+  char* cdum = NULL;
+  int num_eb_props = 0;
+  int num_ns_props = 0;
+  int num_ss_props = 0;
+  int error = ex_inquire(exo_in, EX_INQ_EB_PROP, &num_eb_props, &fdum, cdum);
+  if (error == 0)
+    error = ex_inquire(exo_in, EX_INQ_NS_PROP, &num_ns_props, &fdum, cdum);
+  if (error == 0)
+    error = ex_inquire(exo_in, EX_INQ_SS_PROP, &num_ss_props, &fdum, cdum);
+  
+  if (error != 0) {
+    printf("Error reading number of object properties\n");
+    return error;
+  }
+  
+    // allocate memory for object properties
+  int i;
+  char** eb_prop_names = new char*[num_eb_props];
+  for (i = 0; i < num_eb_props; i++)
+    eb_prop_names[i] = new char[MAX_STR_LENGTH + 1];
+  char** ns_prop_names = new char*[num_ns_props];
+  for (i = 0; i < num_ns_props; i++)
+    ns_prop_names[i] = new char[MAX_STR_LENGTH + 1];
+  char** ss_prop_names = new char*[num_ss_props];
+  for (i = 0; i < num_ss_props; i++)
+    ss_prop_names[i] = new char[MAX_STR_LENGTH + 1];
+  int** eb_prop_values = new int*[num_eb_props];
+  for (i = 0; i < num_eb_props; i++)
+    eb_prop_values[i] = new int[num_blks];
+  int** ns_prop_values = new int*[num_ns_props];
+  for (i = 0; i < num_ns_props; i++)
+    ns_prop_values[i] = new int[num_node_sets];
+  int** ss_prop_values = new int*[num_ss_props];
+  for (i = 0; i < num_ss_props; i++)
+    ss_prop_values[i] = new int[num_side_sets];
+
+    // read the properties
+  if (error == 0)
+    error = ex_get_prop_names(exo_in, EX_ELEM_BLOCK, eb_prop_names);
+  for (i = 0; i < num_eb_props && error == 0; i++)
+    error = ex_get_prop_array(exo_in, EX_ELEM_BLOCK, eb_prop_names[i],
+                              eb_prop_values[i]);
+  if (error == 0)
+    error = ex_get_prop_names(exo_in, EX_NODE_SET, ns_prop_names);
+  for (i = 0; i < num_ns_props && error == 0; i++)
+    error = ex_get_prop_array(exo_in, EX_NODE_SET, ns_prop_names[i],
+                              ns_prop_values[i]);
+  if (error == 0)
+    error = ex_get_prop_names(exo_in, EX_SIDE_SET, ss_prop_names);
+  for (i = 0; i < num_ss_props && error == 0; i++)
+    error = ex_get_prop_array(exo_in, EX_SIDE_SET, ss_prop_names[i],
+                              ss_prop_values[i]);
+    
+
     // write the object parameters
-  char* prop_names[2] = {"SweepID", "SurfaceType"};
-  int cubit_id_blk[2] = {1, 2};
-  int cubit_id_ss[6] = {1, 1, 1, 2, 2, 2};
-  int surf_type[6] = {1, 2, 3, 1, 2, 3};
-  int error = ex_put_prop_names(exo_out, EX_ELEM_BLOCK, 1, prop_names);
-  if (error == 0)
-    error = ex_put_prop_names(exo_out, EX_NODE_SET, 1, prop_names);
-  if (error == 0)
-    error = ex_put_prop_names(exo_out, EX_SIDE_SET, 2, prop_names);
-  if (error == 0)
-    error = ex_put_prop_array(exo_out, EX_ELEM_BLOCK, prop_names[0], 
-                              cubit_id_blk);
-  if (error == 0)
-    error = ex_put_prop_array(exo_out, EX_NODE_SET, prop_names[0], 
-                              cubit_id_blk);
-  if (error == 0)
-    error = ex_put_prop_array(exo_out, EX_SIDE_SET, prop_names[0], 
-                              cubit_id_ss);
-  if (error == 0)
-    error = ex_put_prop_array(exo_out, EX_SIDE_SET, prop_names[1], surf_type);
+  if (update && error == 0) {
+      // element block properties
+    if (num_eb_props > 1) {
+      if (error == 0)
+        error = ex_put_prop_names(exo_out, EX_ELEM_BLOCK, num_eb_props - 1, 
+                                  &eb_prop_names[1]);
+
+      if (verbose && error == 0)
+        printf("\nNo. of block properties:   %d\n", num_eb_props);
+
+      for (i = 0; i < num_eb_props && error == 0; i++) {
+        error = ex_put_prop_array(exo_out, EX_ELEM_BLOCK, eb_prop_names[i], 
+                                  eb_prop_values[i]);
+        if (verbose) {
+          print_property(num_blks, eb_prop_names[i], eb_prop_values[i]);
+        }
+      }
+    }
+  
+      // node set properties
+    if (num_ns_props > 1) {
+      if (error == 0)
+        error = ex_put_prop_names(exo_out, EX_NODE_SET, num_ns_props - 1, 
+                                  &ns_prop_names[1]);
+
+      if (verbose && error == 0) 
+        printf("\nNo. of nodeset properties: %d\n", num_ns_props);
+
+      for (i = 0; i < num_ns_props && error == 0; i++) {
+        error = ex_put_prop_array(exo_out, EX_NODE_SET, ns_prop_names[i], 
+                                  ns_prop_values[i]);
+        if (verbose) {
+          print_property(num_node_sets, ns_prop_names[i], ns_prop_values[i]);
+        }
+      }
+    }
+
+      // side set properties
+    if (num_ss_props > 1) {
+      if (error == 0)
+        error = ex_put_prop_names(exo_out, EX_SIDE_SET, num_ss_props - 1,
+                                  &ss_prop_names[1]);
+
+      if (verbose && error == 0)
+        printf("\nNo. of sideset properties: %d\n", num_ss_props);
+
+      for (i = 0; i < num_ss_props && error == 0; i++) {
+        error = ex_put_prop_array(exo_out, EX_SIDE_SET, ss_prop_names[i], 
+                                  ss_prop_values[i]);
+        if (verbose) {
+          print_property(num_side_sets, ss_prop_names[i], ss_prop_values[i]);
+        }
+      }
+    }
+  }
+  
+    // delete allocate memory
+  for (i = 0; i < num_eb_props; i++)
+    delete [] eb_prop_names[i];
+  delete [] eb_prop_names;
+  for (i = 0; i < num_ns_props; i++)
+    delete [] ns_prop_names[i];
+  delete [] ns_prop_names;
+  for (i = 0; i < num_ss_props; i++)
+    delete [] ss_prop_names[i];
+  delete [] ss_prop_names;
+  for (i = 0; i < num_eb_props; i++)
+    delete [] eb_prop_values[i];
+  delete [] eb_prop_values;
+  for (i = 0; i < num_ns_props; i++)
+    delete [] ns_prop_values[i];
+  delete [] ns_prop_values;
+  for (i = 0; i < num_ss_props; i++)
+    delete [] ss_prop_values[i];
+  delete [] ss_prop_values;
 
   return error;
 }
@@ -657,3 +773,11 @@ int copy_elem_order_map(int exo_in, int exo_out, int num_quads,
   return error;
 }
 
+void print_property(int num_props, char* prop_name, int* prop_values)
+{
+  printf("\t%s:", prop_name);
+  int i;
+  for (i = 0; i < num_props; i++)
+    printf(" %d", prop_values[i]);
+  printf("\n");
+}

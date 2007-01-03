@@ -340,7 +340,7 @@ void PCExodusFile::read_init()
 
     // read "SweepID" property
   int *blk_sweep_ids = NULL;
-  char *prop_name = "SweepID";
+  char *prop_name = "_CU_SweepID";
   if (error == 0) {
     blk_sweep_ids = new int[numElemBlks];
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, blk_sweep_ids);
@@ -358,7 +358,7 @@ void PCExodusFile::read_init()
 
     // read "SurfaceType" property
   int *surf_types = NULL;
-  prop_name = "SurfaceType";
+  prop_name = "_CU_SurfaceType";
   if (error == 0) {
     surf_types = new int[numSideSets];
     error = ex_get_prop_array(exoID, EX_SIDE_SET, prop_name, surf_types);

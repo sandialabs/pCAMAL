@@ -7,6 +7,9 @@ import acis 'bisected_cyl.sat'
 imprint all
 merge all
 
+# turn on parallel meshing so only shell (target) is generated
+set parallel meshing on
+
 # assign schemes and size
 surface 3 6 9 12 scheme pave
 volume 1 2 scheme sweep
@@ -15,22 +18,6 @@ volume 1 2 size auto factor 4
 # mesh the volumes
 mesh volume 1 2
 
-# block, nodeset and sidesets for sweepable volume 1
-block 100 surface 1 to 6
-block 100 element type shell
-nodeset 100 surface 1 to 6
-sideset 100 surface 3
-sideset 110 surface 1 2 4 5
-sideset 120 surface 6
-
-# block, nodeset and sidesets for sweepable volume 2
-block 200 surface 1 2 9 to 12
-block 200 element type shell
-nodeset 200 surface 1 2 9 to 12
-sideset 200 surface 9
-sideset 210 surface 1 2 10 11
-sideset 220 surface 12
-
 # write exodus file
 set developer command on
-export parallel 'bisected_cyl.g' block 100 200 overwrite
+export parallel 'bisected_cyl.g' overwrite

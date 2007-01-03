@@ -9,7 +9,9 @@ The following steps will build the program in a separate directory.
 2) cd build
 
 3) ccmake ../src
-	selected the options and configure the file as needed
+	select the desired options and configure; I use the values below:
+	PCAMAL_DIR = /home/mbsteph/pcamal
+	PCAMAL_OS = Linux
 
 4) make
 

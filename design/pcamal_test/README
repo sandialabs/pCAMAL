@@ -11,7 +11,9 @@ missing class methods, you do not have the latest libraries.)
 2) cd build
 
 3) ccmake ../src
-	select the desired options and configure
+	select the desired options and configure; I use the values below:
+	PCAMAL_DIR = /home/mbsteph/pcamal
+	PCAMAL_OS = Linux
 
 4) make
 
