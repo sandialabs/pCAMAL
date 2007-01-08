@@ -20,4 +20,4 @@ mesh volume 1 2
 
 # write exodus file
 set developer command on
-export parallel 'bisected_cyl.g' overwrite
+export parallel 'bisected_cyl.pcamal.g' overwrite
