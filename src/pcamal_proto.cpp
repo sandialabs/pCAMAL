@@ -8,11 +8,11 @@
 #include "CMLSweeper.hpp"
 
 void WriteLocalExodusMesh( int num_points_out, int num_hexes, 
-		     double* x_coor, double* y_coor, double* z_coor, 
-			   int* connect, int sweep_id, char* fileout ) {
-  // Write local Exodus II output file
+                           double* x_coor, double* y_coor, double* z_coor, 
+                           int* connect, int sweep_id, char* fileout ) {
+    // Write local Exodus II output file
   printf( "Writing an Exodus II mesh %d with %d points and %d hexes.\n",
-	  sweep_id, num_points_out, num_hexes );
+          sweep_id, num_points_out, num_hexes );
 
   char filename[strlen( fileout ) + 10];
   sprintf( filename, "%s.vol%03d.g", fileout, sweep_id );
@@ -25,35 +25,36 @@ void WriteLocalExodusMesh( int num_points_out, int num_hexes,
 }
 
 int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id, 
-			      char* fileout, bool verbose,
-			      int* n_pts_l, int* n_hex_l ) {
-  // Read sweep subdomain parameters
-  int sweep_id, num_points, num_quads;
-  pc_input->read_sweep_prop(vol_id, sweep_id, num_points, num_quads);
+                              char* fileout, bool verbose,
+                              int* n_pts_l, int* n_hex_l ) {
+    // Read sweep subdomain parameters
+  int sweep_id, num_quads;
+  pc_input->read_sweep_prop(vol_id, sweep_id, num_quads);
   if ( ! sweep_id )
     return 0;
   
-  // Read coordinates
-  double x_coor[num_points];
-  double y_coor[num_points];
-  double z_coor[num_points];
-  int node_ids[num_points];
+    // Read coordinates
+  int num_points;
+  double* x_coor = NULL;
+  double* y_coor = NULL;
+  double* z_coor = NULL;
+  int* node_ids  = NULL;
   pc_input->read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
-			    node_ids);
+                             node_ids);
   if ( verbose ) {
     printf( "\n                  ---Coordinates---\n" );
     printf( "  node        x            y            z\n" );
     int i;
     for (i = 0; i < num_points; i++) {
       printf( "%8d %12.5e %12.5e %12.5e\n", 
-	     i+1, x_coor[i], y_coor[i], z_coor[i]);
+              i+1, x_coor[i], y_coor[i], z_coor[i]);
     }
   }
   
-  // Read connectivity
+    // Read connectivity
   int num_src_surf, num_lnk_surf, num_tgt_surf;
   int num_surfs = pc_input->read_sweep_surf_prop(vol_id, num_src_surf, 
-						num_lnk_surf, num_tgt_surf);
+                                                 num_lnk_surf, num_tgt_surf);
   printf( "\nSurface information for subdomain %d:\n", vol_id );
   printf( "  number sources = %d\n", num_src_surf);
   printf( "  number linking = %d\n", num_lnk_surf);
@@ -72,7 +73,8 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   }
   
   int connect[num_quads * 4];
-  pc_input->read_sweep_conn( vol_id, num_quads, node_ids, connect );
+  pc_input->read_sweep_conn( vol_id, num_points, num_quads, 
+                             node_ids, connect );
   if ( verbose ) {
     printf( "\n           ---Connectivity---\n" );
     printf( "  Quad     n1        n2        n3        n4\n" );
@@ -82,32 +84,35 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
       c += 4;
     }
   }
+  delete [] node_ids;
 
-  // Setup CAMAL hex sweeper
+    // Setup CAMAL hex sweeper
   CMLSweeper sweeper;
   sweeper.set_boundary_mesh( num_points, x_coor, y_coor, z_coor,
-  			     num_quads, connect,
-  			     num_src_surf, num_surf_quads, num_tgt_quads );
+                             num_quads, connect,
+                             num_src_surf, num_surf_quads, num_tgt_quads );
 
-
-  // Generate swept hex mesh
+    // Generate swept hex mesh
   int num_points_out, num_hexes;
   sweeper.generate_mesh( num_points_out, num_hexes );
   n_pts_l[0] = num_points_out;
   n_hex_l[0] = num_hexes;
+  delete [] x_coor;
+  delete [] y_coor;
+  delete [] z_coor;  
 
-  // Retrieve mesh
+    // Retrieve mesh
   double x_coor_m[num_points_out];
   double y_coor_m[num_points_out];
   double z_coor_m[num_points_out];
   int connect_m[num_hexes * 8];
   sweeper.get_mesh( num_points_out, x_coor_m, y_coor_m, z_coor_m,
-		    num_hexes, connect_m );
+                    num_hexes, connect_m );
 
-  // Write mesh
+    // Write mesh
   WriteLocalExodusMesh( num_points_out, num_hexes, 
-			x_coor_m, y_coor_m, z_coor_m,
-			connect_m, sweep_id, fileout );
+                        x_coor_m, y_coor_m, z_coor_m,
+                        connect_m, sweep_id, fileout );
   return 1;
 }
 

@@ -10,8 +10,7 @@
 class PCSweepVolume
 {
 public:
-  PCSweepVolume() : sweepId(0),     numNodes(0),  numQuads(0), 
-                    elemBlockId(0), nodeSetId(0), blockOffset(0)
+  PCSweepVolume() : sweepId(0), numQuads(0), elemBlockId(0), targetId(0)
       {}
   virtual ~PCSweepVolume()
       {}
@@ -19,23 +18,7 @@ public:
   int  get_elem_block_id() {return elemBlockId;}
   void put_elem_block_id(int blk_id) {elemBlockId = blk_id;}
   
-  int  get_node_set_id() {return nodeSetId;}
-  void put_node_set_id(int set_id) {nodeSetId = set_id;}
-
-  int  get_elem_block_offset() {return blockOffset;}
-  void put_elem_block_offset(int offset) {blockOffset = offset;}
-
-  int  get_side_set_id(int i)
-      { if (i >= 0 && i < sideSetId.size()) return sideSetId[i];
-        else return 0; }
-  void put_side_set_id(int set_id, int type)
-      {sideSetId.push_back(set_id); surfTypes.push_back(type);}
-
-  int  get_num_nodes() {return numNodes;}
-  void put_num_nodes(int num_nodes) {numNodes = num_nodes;}
-  
-  int  get_num_quads() {return numQuads;}
-  void put_num_quads(int num_quads) {numQuads = num_quads;}
+  int  get_num_quads();
 
   int  get_num_surfs(int &num_src_surf, int &num_lnk_surf, int &num_tgt_surf);
   void get_num_surf_quads(int num_surfs, int *num_surf_quads);
@@ -48,17 +31,19 @@ public:
   int  get_sweep_id() {return sweepId;}
   void put_sweep_id(int sweep_id) {sweepId = sweep_id;}
 
-  int  sort_surf();
+  void add_source_id(int sid) {sourceIds.push_back(sid);}
+  void add_linking_id(int lid) {linkingIds.push_back(lid);}
+  void put_target_id(int tid) {targetId = tid;}
+  int  get_ordered_ids(std::vector<int>& ids);
 
 private:
   int sweepId;
-  int numNodes;
+//   int numNodes;
   int numQuads;
   int elemBlockId;
-  int nodeSetId;
-  int blockOffset;
-  std::vector<int> sideSetId;
-  std::vector<int> surfTypes;
+  int targetId;
+  std::vector<int> sourceIds;
+  std::vector<int> linkingIds;
   std::vector<int> numSurfQuads;
 };
 

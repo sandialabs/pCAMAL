@@ -5,76 +5,48 @@
 #include "exodusII.h"
 #include "PCSweepVolume.hpp"
 
-int PCSweepVolume::sort_surf()
+int PCSweepVolume::get_ordered_ids(std::vector<int>& ids)
 {
-    // check consistency of data
-  if (sideSetId.size() == surfTypes.size() &&
-      surfTypes.size() == numSurfQuads.size()) {
-
-      // insertion sort since surfaces should be nearly in-order
-    int i, j;
-    for (j = 1; j < sideSetId.size(); j++) {
-      int type = surfTypes[j];
-      int ssid = sideSetId[j];
-      int numQ = numSurfQuads[j];
-      i = j - 1;
-      while (i >= 0 && surfTypes[i] > type) {
-        surfTypes[i+1] = surfTypes[i];
-        sideSetId[i+1] = sideSetId[i];
-        numSurfQuads[i+1] = numSurfQuads[i];
-        --i;
-      }
-      surfTypes[i+1] = type;
-      sideSetId[i+1] = ssid;
-      numSurfQuads[i+1] = numQ;
-    }
-    return 0;
-  }
-  return -1;
+  ids = sourceIds;
+  int i;
+  for (i = 0; i < linkingIds.size(); i++)
+    ids.push_back(linkingIds[i]);
+  ids.push_back(targetId);
+  
+  return ids.size();
 }
+
+int PCSweepVolume::get_num_quads()
+{
+  int num_quads = 0;
+  int i;
+  for (i = 0; i < numSurfQuads.size(); i++)
+    num_quads += numSurfQuads[i];
+
+  return num_quads;
+}
+
 
 int PCSweepVolume::get_num_surfs(int &num_src_surf, int &num_lnk_surf, 
                                  int &num_tgt_surf)
 {
-  num_src_surf = 0;
-  num_lnk_surf = 0;
-  num_tgt_surf = 0;
+  num_src_surf = sourceIds.size();
+  num_lnk_surf = linkingIds.size();
+  num_tgt_surf = 1;
   
-    // check consistency of data
-  if (sideSetId.size() == surfTypes.size() &&
-      surfTypes.size() == numSurfQuads.size()) {
-    int i;
-    for (i = 0; i < surfTypes.size(); i++) {
-      switch(surfTypes[i]) {
-        case 1:
-            ++num_src_surf;
-            break;
-        case 2:
-            ++num_lnk_surf;
-            break;
-        case 3:
-            ++num_tgt_surf;
-            break;
-        default:
-            break;
-      }
-    }
-  }
   return num_src_surf + num_lnk_surf + num_tgt_surf;
 }
 
 void PCSweepVolume::get_num_surf_quads(int num_surfs, int *num_surf_quads)
 {
-    // check consistency of data
-  if (sideSetId.size() == surfTypes.size() &&
-      surfTypes.size() == numSurfQuads.size()) {
-
-      // copy std::vector to int array
-    if (num_surfs == numSurfQuads.size()) {
-      int i;
-      for (i = 0; i < num_surfs; i++) {
-        num_surf_quads[i] = numSurfQuads[i];
-      }
+    // copy std::vector to int array
+  int i;
+  if (num_surfs == numSurfQuads.size()) {
+    for (i = 0; i < num_surfs; i++) {
+      num_surf_quads[i] = numSurfQuads[i];
     }
+  }
+  else {
+    memset(num_surf_quads, 0, num_surfs * sizeof(int));
   }
 }
