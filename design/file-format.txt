@@ -7,8 +7,10 @@ Requirements:
 2. File contains all information necessary to sweep each volume, i.e.,
    points, boundary elements identified as source surface(s), linking surface,
    and target surface.
-3. File contains node sets and side sets used to define boundary conditions
+3. File may contain additional element blocks,  node sets and side sets 
+   defined by the user.
 
+The description below is for the pCAMAL specific items in the Exodus file.
 
 pCamal Exodus II file
 =====================
@@ -19,9 +21,10 @@ Title:				defined by user
 Number of nodes:		number of nodal coordinates
 Problem dimension:		3
 Number of elements:		sum of elements in element blocks
-Number of element blocks:	number of sweepable volumes
-Number of nodes sets:		number of sweepable volumes + defined node sets
-Number of side sets:		number of sweepable volumes + defined sids sets
+Number of element blocks:	defined element blocks +
+                                number of unique surfaces in sweepable volumes
+Number of nodes sets:		defined node sets
+Number of side sets:		defined sids sets
 Database version number:	program defined
 API version number:		program defined
 I/O word size:			8 bytes
@@ -41,7 +44,7 @@ N/A
 
 Nodal coordinates
 -----------------
-for all coordinates on boundary surface of all sweepable volumes
+for all nodes referenced in element blocks
   x, y, z 
 
 Node number map
@@ -61,59 +64,59 @@ Element blocks
 --------------
 Element block ID:	unique ID assigned by Cubit
 Element type:		SHELL
-Number of elements:	number of quads on boundary of this sweepable volume
+Number of elements:	number of quads on boundary of this source, linking,
+                        or target surface
 Nodes per element:	4
 Number of attributes:	0
 
 Element Connectivity:
-for all elements in this sweepable volume
+for all elements in this source, linking, or target surface
   n1, n2, n3, n4
 
 Element Attributes:     N/A
 
 Node sets
 ---------
-Node set ID:		unique ID assigned by Cubit (num. blocks node sets)
-			(additional node sets defined by user)
-Number of nodes:	number of nodes on boundary of this sweepable volume
-Number of distribution factors: 0
-
-Node set node list
-for each node  on boundary of this sweepable volume
-  internal ID of nodes
+N/A
 
 Node set distribution factors: N/A
 
 Side sets
 ---------
-Side set ID:		unique ID assigned by Cubit (num. blocks x 3 side sets)
-			(additional side sets defined by user)
-Number of sides:	number of quads on boundary of this sweepable volume
-Number of distribution factors: 0
-
-Side set element list
-for each element on boudnary of this sweeable volume
-  internal element id 
-
-Side set side list
-for each element on boundary of this sweepable volume
-  1 (face of shell element)
-
-Side set distribution factors
------------------------------
 N/A
+
+Side set distribution factors: N/A
 
 
 Object properties
 -----------------
-Name	EB1	...	EBn	NS1	...	NSn	SS1	SS2	SS3	...	SSm
-ID	1	...	n	1	...	n	1	2	3		m
-SweepID	5	...	3	5	...	3	5	5	5		3
-SurfType						1	2	3	...	3
+for each element block, define the following object properties
+  _CU_SweepID1
+  _CU_SweepID2
+  _CU_SurfaceType1
+  _CU_SurfaceType2
 
-The SweepID identifies the element block, node set, and side sets associated
-with each sweepable block. Blocks and sets of the same sweepable volume will
-have the same value, e.g., 5.
+The _CU_SweepID identifies the element blocks associated with each sweepable
+volume. Blocks in the same sweepable volume will have the same value, e.g.,
+1 or 2.
 
-The SurfaceType identifies the side sets as source (1), linking (2) or
-target (3) elements.
+The _CU_SurfaceType identifies the element blocks as source (1), linking (2)
+or target (3) elements.
+
+The two sweep id and two surface type properties allow for sharing of surfaces
+between sweepable volumes without duplicating elements. Two are sufficient
+since no more than two volumes should share a surface quad.
+
+Name		EB1	EB2	EB3	EB4	EB5	EB6	EB7	EB8
+ID		100	110	120	130	140	200	210	220
+_CU_SweepID1	1	1	1	1	1	2	2	2
+_CU_SweepID2	0	2	2	0	0	0	0	0
+_CU_Surf..Type1	1	2	2	2	3	1	2	3
+_CU_Surf..Type2	0	2	2	0	0	0	0	0
+
+
+In the example table above, sweepable volume 1 consists of source surface
+(block 100), linking surfaces (blocks 110, 120, 130) and target surface
+(block 140). Sweepable volume 2 is formed from source surface (block 200),
+linking surfaces (blocks 210, 110, 120), and target surface (block 220).
+Linking surfaces (blocks 110, 120) are shared by the two volumes.
