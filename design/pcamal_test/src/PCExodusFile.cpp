@@ -2,7 +2,7 @@
 // description: implementation of pCAMAL Exodus file interface
 // author: Michael Stephenson
 
-#include <map>
+#include <set>
 #include <string.h>
 #include "PCExodusFile.hpp"
 #include "PCSweepVolume.hpp"
@@ -42,14 +42,6 @@ PCExodusFile::~PCExodusFile()
   delete_sweep_volumes();
 }
   
-int PCExodusFile::get_num_elem_blks()
-{
-  if (exoID == 0)
-    return 0;
-
-  return numElemBlks;
-}
-
 int PCExodusFile::get_num_sweep_vols()
 {
   if (exoID == 0)
@@ -58,155 +50,160 @@ int PCExodusFile::get_num_sweep_vols()
   return sweepVols.size();
 }
 
-void PCExodusFile::read_sweep_prop(int i, int &sweep_id, 
-                                   int &num_points, int &num_quads)
+void PCExodusFile::read_sweep_prop(int vol_id, int &sweep_id, int &num_quads)
 {
   if (exoID == 0 || sweepVols.empty() ||
-      i < 0 || i >= sweepVols.size()) {
+      vol_id < 0 || vol_id >= sweepVols.size()) {
     sweep_id   = 0;
-    num_points = 0;
     num_quads  = 0;
   }
   else {
-    sweep_id   = sweepVols[i]->get_sweep_id();
-    num_points = sweepVols[i]->get_num_nodes();
-    num_quads  = sweepVols[i]->get_num_quads();
+    sweep_id   = sweepVols[vol_id]->get_sweep_id();
+    num_quads  = sweepVols[vol_id]->get_num_quads();
   }  
 }
 
-void PCExodusFile::read_sweep_coord(int i, int num_points, 
-                                    double *x_coor, double *y_coor, 
-                                    double *z_coor, int *node_ids)
+void PCExodusFile::read_sweep_coord(int vol_id, int& num_points, 
+                                    double* &x_coor, double* &y_coor, 
+                                    double* &z_coor, int* &node_ids)
 {
-  if (num_points > 0 &&
-      x_coor != NULL && y_coor != NULL && z_coor != NULL &&
-      node_ids != NULL) {
-    int ns_id = sweepVols[i]->get_node_set_id();
-    int error = ex_get_node_set(exoID, ns_id, node_ids);
+  if (vol_id < 0 || vol_id > sweepVols.size()) {
+    num_points = 0;
+    return;
+  }
+  
+    // retrieve all nodes
+  double* xx = new double[numNodes];
+  double* yy = new double[numNodes];
+  double* zz = new double[numNodes];
+  int error = ex_get_coord(exoID, xx, yy, zz);      
 
-      // retrieve all nodes
-    double *xx = NULL;
-    double *yy = NULL;
-    double *zz = NULL;
-    if (error == 0) {
-      xx = new double[numNodes];
-      yy = new double[numNodes];
-      zz = new double[numNodes];
-      error = ex_get_coord(exoID, xx, yy, zz);      
+    // copy only coordinates in element blocks
+  int* mark = NULL;
+  if (error == 0) {
+      // get element blocks
+    PCSweepVolume* vol = sweepVols[vol_id];
+    std::vector<int> blk_ids;
+    vol->get_ordered_ids(blk_ids);
+
+      // mark all nodes in element blocks
+    mark = new int[numNodes];
+    memset(mark, 0, numNodes * sizeof(int));
+    
+    int i;
+    for (i = 0; i < blk_ids.size() && error == 0; i++) {
+      int num_quads = vol->get_num_surf_quads(i);
+      int* conn = new int[num_quads * 4];
+      
+      error = ex_get_elem_conn(exoID, blk_ids[i], conn);
+      if (error == 0) {
+        int j;
+        for (j = 0; j < num_quads * 4; j++)
+          mark[conn[j] - 1] = 1;
+      }
+      delete [] conn;
+    }
+  }
+    
+    // count number of marked nodes
+  num_points = 0;
+  if (error == 0) {
+    int i;
+    for (i = 0; i < numNodes; i++) {
+      if (mark[i] > 0)
+        ++num_points;
     }
 
-      // copy only coordinates in node set
-    if (error == 0) {
-      int i;
-      for (i = 0; i < num_points; i++) {
-        int j = node_ids[i] - 1;
-        x_coor[i] = xx[j];
-        y_coor[i] = yy[j];
-        z_coor[i] = zz[j];
-//         printf("%5d %5d: %12.5e %12.5e %12.5e\n",
-//                i+1, j+1, xx[j], yy[j], zz[j]);
+      // copy marked coordinates
+    x_coor = new double[num_points];
+    y_coor = new double[num_points];
+    z_coor = new double[num_points];
+    node_ids = new int[num_points];
+    
+    int j = 0;
+    for (i = 0; i < numNodes; i++) {
+      if (mark[i] > 0) {
+        x_coor[j] = xx[i];
+        y_coor[j] = yy[i];
+        z_coor[j] = zz[i];
+        node_ids[j++] = i + 1;
+//         printf("%d:%d %f %f %f\n", j, node_ids[j], xx[i], yy[i], zz[i]);
       }
     }
-
-      // clean up
-    delete [] zz;
-    delete [] yy;
-    delete [] xx;
   }
+
+    // clean up
+  delete [] mark;
+  delete [] zz;
+  delete [] yy;
+  delete [] xx;
 }
 
-void PCExodusFile::read_sweep_conn(int i, int num_quads, int *node_ids,
-                                   int *connect)
+void PCExodusFile::read_sweep_conn(int vol_id, int num_points, int num_quads,
+                                   int *node_ids, int *connect)
 {
     // no Exodus file or no sweep volumes or index out of range
-  if (exoID == 0 || sweepVols.empty() || i < 0 || i >= sweepVols.size())
+  if (exoID == 0 || sweepVols.empty() ||
+      vol_id < 0 || vol_id >= sweepVols.size())
     return;
 
     // read the connectivity
   if (num_quads > 0 && node_ids != NULL && connect != NULL) {
-    int *tmp_conn = new int[num_quads * 4];
-    int blk_id = sweepVols[i]->get_elem_block_id();
-    int prev_blks = sweepVols[i]->get_elem_block_offset();    
-
-    int error = ex_get_elem_conn(exoID, blk_id, tmp_conn);
-
-      // sort elements by side set order
-    int *c = connect;
-    if (error == 0) {
-      int nsrc, nlnk, ntgt;
-      int num_surfs = sweepVols[i]->get_num_surfs(nsrc, nlnk, ntgt);
-      int j;
-      for (j = 0; j < num_surfs; j++) {
-        int ssid = sweepVols[i]->get_side_set_id(j);
-        int numq = sweepVols[i]->get_num_surf_quads(j);
-        int *ss_list = new int[numq];
-        int *ss_side = new int[numq];
-        error = ex_get_side_set(exoID, ssid, ss_list, ss_side);
-
-          // order tmp_conn in connect
-        int k;
-        for (k = 0; k < numq && error == 0; k++) {
-          int index = ss_list[k];
-          if (i == 0 && j == 1 && index > num_quads) 
-            index -= num_quads;
-          index = (index - prev_blks - 1) * 4;
-          c[0] = tmp_conn[index++];
-          c[1] = tmp_conn[index++];
-          c[2] = tmp_conn[index++];
-          c[3] = tmp_conn[index];
-//           printf("%5d %5d: %5d %5d %5d %5d\n", 
-//                  k, ss_list[k], c[0], c[1], c[2], c[3]);
-          c += 4;
-        }
-        delete [] ss_side;
-        delete [] ss_list;
-      }
-    }  
-    delete [] tmp_conn;
+    std::vector<int> blk_ids;
+    int num_blks = sweepVols[vol_id]->get_ordered_ids(blk_ids);
+    
+    int* tc = connect;
+    int error = 0;
+    int j;
+    for (j = 0; j < num_blks  && error == 0; j++) {
+      int blk_id = blk_ids[j];
+      error = ex_get_elem_conn(exoID, blk_id, tc);
+      int num_blk_quads = sweepVols[vol_id]->get_num_surf_quads(j);
+      tc += (num_blk_quads * 4);
+    }
     
       // map node numbers for node_ids to sequential ids
     if (error == 0) {
-      int num_points = sweepVols[i]->get_num_nodes();
       std::map<int,int> node_map;
-      int i;
-      for (i = 0; i < num_points; i++) {
-        node_map[node_ids[i]] = i;
+      int j;
+      for (j = 0; j < num_points; j++) {
+        node_map[node_ids[j]] = j;
       }
       
-      for (i = 0; i < num_quads * 4; i++) {
-        int id = connect[i];
-        connect[i] = node_map[id];
-//         printf("%5d: %5d -> %5d\n", i, id, connect[i]);
+      for (j = 0; j < num_quads * 4; j++) {
+        int id = connect[j];
+        connect[j] = node_map[id];
+//         printf("%5d: %5d -> %5d\n", j, id, connect[j]);
       }
     }
   }
 }
 
-int PCExodusFile::read_sweep_surf_prop(int i, int &num_src_surf,
+int PCExodusFile::read_sweep_surf_prop(int vol_id, int &num_src_surf,
                                         int &num_lnk_surf,
                                         int &num_tgt_surf)
 {
   if (exoID == 0 || sweepVols.empty() ||
-      i < 0 || i >= sweepVols.size()) {
+      vol_id < 0 || vol_id >= sweepVols.size()) {
     num_src_surf = 0;
     num_lnk_surf = 0;
     num_tgt_surf = 0;
   }
   else {
-    int total = sweepVols[i]->get_num_surfs(num_src_surf, num_lnk_surf,
-                                            num_tgt_surf);
+    int total = sweepVols[vol_id]->get_num_surfs(num_src_surf, num_lnk_surf,
+                                                 num_tgt_surf);
   }
 }
 
-void PCExodusFile::read_sweep_surf_size(int i, int num_surfs,
+void PCExodusFile::read_sweep_surf_size(int vol_id, int num_surfs,
                                         int *num_surf_quads)
 {
   if (exoID == 0 || sweepVols.empty() ||
-      i < 0 || i >= sweepVols.size())
+      vol_id < 0 || vol_id >= sweepVols.size())
     return;
   
   if (num_surfs > 0 && num_surf_quads != NULL) {
-    sweepVols[i]->get_num_surf_quads(num_surfs, num_surf_quads);
+    sweepVols[vol_id]->get_num_surf_quads(num_surfs, num_surf_quads);
   }
 }
 
@@ -324,120 +321,131 @@ void PCExodusFile::read_init()
     error = ex_get_elem_blk_ids(exoID, eb_ids);
   }
 
-    // read node set IDs
-  int *ns_ids = NULL;
-  if (error == 0) {
-    ns_ids = new int[numNodeSets];
-    error = ex_get_node_set_ids(exoID, ns_ids);
-  }
-  
-    // read node set IDs
-  int *ss_ids = NULL;
-  if (error == 0) {
-    ss_ids = new int[numSideSets];
-    error = ex_get_side_set_ids(exoID, ss_ids);
-  }
-
     // read "SweepID" property
-  int *blk_sweep_ids = NULL;
-  char *prop_name = "_CU_SweepID";
+  int *surf_sweep1_ids = NULL;
+  char *prop_name = "_CU_SweepID1";
   if (error == 0) {
-    blk_sweep_ids = new int[numElemBlks];
-    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, blk_sweep_ids);
+    surf_sweep1_ids = new int[numElemBlks];
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, 
+                              surf_sweep1_ids);
   }
-  int *ns_sweep_ids = NULL;
+  int *surf_sweep2_ids = NULL;
+  prop_name = "_CU_SweepID2";
   if (error == 0) {
-    ns_sweep_ids = new int[numNodeSets];
-    error = ex_get_prop_array(exoID, EX_NODE_SET, prop_name, ns_sweep_ids);
-  }
-  int *ss_sweep_ids = NULL;
-  if (error == 0) {
-    ss_sweep_ids = new int[numSideSets];
-    error = ex_get_prop_array(exoID, EX_SIDE_SET, prop_name, ss_sweep_ids);
+    surf_sweep2_ids = new int[numElemBlks];
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, 
+                              surf_sweep2_ids);
   }
 
     // read "SurfaceType" property
-  int *surf_types = NULL;
-  prop_name = "_CU_SurfaceType";
+  int *surf_types1 = NULL;
+  prop_name = "_CU_SurfaceType1";
   if (error == 0) {
-    surf_types = new int[numSideSets];
-    error = ex_get_prop_array(exoID, EX_SIDE_SET, prop_name, surf_types);
+    surf_types1 = new int[numElemBlks];
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, surf_types1);
+  }
+  int *surf_types2 = NULL;
+  prop_name = "_CU_SurfaceType2";
+  if (error == 0) {
+    surf_types2 = new int[numElemBlks];
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, surf_types2);
   }
 
     // generate sweep volumes for all SweepIDs
+  std::map<int, PCSweepVolume*> sweep_map;
   if (error == 0) {
     delete_sweep_volumes();
-    
-    int block_offset = 0;
-    int i;
-    for (i = 0; i < numElemBlks; i++) {
-      char elem_type[MAX_STR_LENGTH+1];
-      int num_elem_blk, num_node_elem, num_attr;
-      error = ex_get_elem_block(exoID, eb_ids[i], elem_type, &num_elem_blk,
-                                &num_node_elem, &num_attr);
-
-      if (error == 0) {
-        int sweep_id = blk_sweep_ids[i];
-
-          // is this block a sweep block
-        if (sweep_id > 0 && num_node_elem == 4) {
-          PCSweepVolume* vol = new PCSweepVolume;
-          sweepVols.push_back(vol);
-          
-          vol->put_sweep_id(sweep_id);
-          vol->put_elem_block_id(eb_ids[i]);
-          vol->put_elem_block_offset(block_offset);
-          vol->put_num_quads(num_elem_blk);
-          
-
-            // find associated node set (assumes only one node set/elem block)
-          int j;
-          int ns_id = 0;
-          for (j = 0; j < numNodeSets && error == 0; j++) {
-            int ns_sweep_id = ns_sweep_ids[j];
-            if (ns_sweep_id == sweep_id) {
-              ns_id = ns_ids[j];
-              vol->put_node_set_id(ns_id);
-              int num_nodes, num_dist;
-              error = ex_get_node_set_param(exoID, ns_id, &num_nodes,
-                                            &num_dist);
-              if (error == 0)
-                vol->put_num_nodes(num_nodes);
-              break;
-            }
-          }  
-
-            // find associated side sets
-          for (j = 0; j < numSideSets && error == 0; j++) {
-            int ss_sweep_id = ss_sweep_ids[j];
-            if (ss_sweep_id == sweep_id) {
-              int ss_id = ss_ids[j];
-              vol->put_side_set_id(ss_id, surf_types[j]);
-              int num_quads, num_dist;
-              error = ex_get_side_set_param(exoID, ss_id, &num_quads,
-                                            &num_dist);
-              if (error == 0)
-                vol->put_num_surf_quads(num_quads);
-            }
-          }
-
-            // sort the sides sets by surface type
-          if (error == 0)
-            vol->sort_surf();
-        }
-      }
-      block_offset += num_elem_blk;
-    }
+    error = convert_sweep_data(eb_ids, surf_sweep1_ids, surf_types1, 
+                               sweep_map);
+  }
+  if (error == 0) {
+    error = convert_sweep_data(eb_ids, surf_sweep2_ids, surf_types2, 
+                               sweep_map);
   }
 
+  if (error == 0)
+    error = update_quad_count();
+  
     // clean up
-  delete [] surf_types;
-  delete [] ss_sweep_ids;
-  delete [] ns_sweep_ids;
-  delete [] blk_sweep_ids;
-  delete [] ss_ids;
-  delete [] ns_ids;
+  delete [] surf_types2;
+  delete [] surf_types1;
+  delete [] surf_sweep2_ids;
+  delete [] surf_sweep1_ids;
   delete [] eb_ids;
+}
+
+int PCExodusFile::convert_sweep_data(int* eb_ids, 
+                                     int* surf_sweep_ids, int* surf_types,
+                                     std::map<int, PCSweepVolume*>& sweep_map)
+{
+  PCSweepVolume* vol = NULL;
+  int i;
+  for (i = 0; i < numElemBlks; i++) {
+    int sweep_id = surf_sweep_ids[i];
+
+      // is this block a sweep block
+    if (sweep_id <= 0)
+      continue;
+      
+    if (sweep_map.empty() || sweep_map.find(sweep_id) == sweep_map.end()) {
+      vol = new PCSweepVolume;
+      sweepVols.push_back(vol);
+      vol->put_sweep_id(sweep_id);
+      vol->put_elem_block_id(eb_ids[i]);
+      sweep_map[sweep_id] = vol;
+    }
+    else {
+      vol = sweep_map[sweep_id];
+    }
+
+    const int SOURCE_TYPE  = 1;
+    const int LINKING_TYPE = 2;
+    const int TARGET_TYPE  = 3;
+    switch (surf_types[i]) {
+      case SOURCE_TYPE:
+          vol->add_source_id(eb_ids[i]);
+          break;
+      case LINKING_TYPE:
+          vol->add_linking_id(eb_ids[i]);
+          break;
+      case TARGET_TYPE:
+          vol->put_target_id(eb_ids[i]);
+          break;
+      default:
+          printf("ERROR: Unknown surface type %d\n", surf_types[i]);
+          break;
+    }
+  }
+  return 0;
+}
+
+int PCExodusFile::update_quad_count()
+{
+  std::set<int> blk_set;
+  int error = 0;
+  int block_offset = 0;
+  int i;
+  for (i = 0; i < sweepVols.size() && error == 0; i++) {
+    PCSweepVolume* vol = sweepVols[i];
+
+    std::vector<int> blk_ids;
+    vol->get_ordered_ids(blk_ids);
+    int j;
+    for (j = 0; j < blk_ids.size() && error == 0; j++) {
+      char elem_type[MAX_STR_LENGTH+1];
+      int num_elem_blk, num_node_elem, num_attr;
+      int error = ex_get_elem_block(exoID, blk_ids[j], elem_type,
+                                    &num_elem_blk, &num_node_elem, &num_attr);
+
+      if (error == 0) {
+        if (num_node_elem == 4)
+          vol->put_num_surf_quads(num_elem_blk);
+        else
+          error = -1;
+      }
+    }
+  }
+  return error;
 }
 
 void PCExodusFile::delete_sweep_volumes()
@@ -447,7 +455,8 @@ void PCExodusFile::delete_sweep_volumes()
     for (it = sweepVols.begin(); it != sweepVols.end(); it++) {
       delete (*it);
     }
-    sweepVols.erase(sweepVols.begin(), sweepVols.end());
+//     sweepVols.erase(sweepVols.begin(), sweepVols.end());
+    sweepVols.clear();
   }
 }
 

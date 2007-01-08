@@ -82,19 +82,20 @@ int main(int argc, char **argv)
   int vol_id;
   for (vol_id = 0; vol_id < num_blks; vol_id++) {
       // read sweep block control
-    int sweep_id, num_points, num_quads;
-    pc_input.read_sweep_prop(vol_id, sweep_id, num_points, num_quads);
+    int sweep_id, num_quads;
+    pc_input.read_sweep_prop(vol_id, sweep_id, num_quads);
     if (sweep_id == 0)
       continue;
     if (verbose) {
       printf("\nSweeping Volume %d (Cubit Volume %d)\n", vol_id, sweep_id);
     }
     
-      // read coordinates
-    double *x_coor = new double[num_points];
-    double *y_coor = new double[num_points];
-    double *z_coor = new double[num_points];
-    int *node_ids = new int[num_points];
+      // read coordinates (memory allocated in read_sweep_coord)
+    int num_points;
+    double* x_coor = NULL;
+    double* y_coor = NULL;
+    double* z_coor = NULL;
+    int* node_ids  = NULL;
     pc_input.read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
                               node_ids);
     if (verbose) {
@@ -134,7 +135,7 @@ int main(int argc, char **argv)
     }
 
     int *connect = new int[num_quads * 4];
-    pc_input.read_sweep_conn(vol_id, num_quads, node_ids, connect);
+    pc_input.read_sweep_conn(vol_id, num_points, num_quads, node_ids, connect);
     if (verbose) {
       printf("\n           ---Connectivity---\n");
       printf("  Quad     n1        n2        n3        n4\n");
