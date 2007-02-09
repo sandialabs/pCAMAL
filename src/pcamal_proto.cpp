@@ -28,16 +28,17 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 			      char* fileout, bool verbose,
 			      int& num_points_out, int& num_hexes ) {
   // Read sweep subdomain parameters
-  int sweep_id, num_points, num_quads;
-  pc_input->read_sweep_prop(vol_id, sweep_id, num_points, num_quads);
+  int sweep_id, num_quads;
+  pc_input->read_sweep_prop(vol_id, sweep_id, num_quads);
   if ( ! sweep_id )
     return 0;
   
   // Read coordinates
-  double x_coor[num_points];
-  double y_coor[num_points];
-  double z_coor[num_points];
-  int node_ids[num_points];
+  int num_points;
+  double* x_coor = NULL;
+  double* y_coor = NULL;
+  double* z_coor = NULL;
+  int* node_ids  = NULL;
   pc_input->read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
                              node_ids);
   if ( verbose )
@@ -74,7 +75,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
     }
   
   int connect[num_quads * 4];
-  pc_input->read_sweep_conn( vol_id, num_quads, node_ids, connect );
+  pc_input->read_sweep_conn( vol_id, num_points, num_quads, node_ids, connect );
   if ( verbose ) 
     {
     printf( "\n		  ---Connectivity---\n" );
@@ -86,6 +87,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
       c += 4;
       }
     }
+  delete [] node_ids;
 
   // Setup CAMAL hex sweeper
   CMLSweeper sweeper;
@@ -96,6 +98,9 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 
   // Generate swept hex mesh
   sweeper.generate_mesh( num_points_out, num_hexes );
+  delete [] x_coor;
+  delete [] y_coor;
+  delete [] z_coor;  
 
   // Retrieve mesh
   double x_coor_m[num_points_out];
@@ -163,7 +168,7 @@ int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose 
 
   if ( nproc < nsub )
     {
-    for ( int i = 0; i < nproc; ++ i ) proc_assign[i] = i % nproc;
+    for ( int i = 0; i < nsub; ++ i ) proc_assign[i] = i % nproc;
     
     if ( ! myrank && verbose )
       {
@@ -223,7 +228,7 @@ int main(int argc, char **argv) {
     }
   
   // Open input file
-  PCExodusFile pc_input(filein, pce::read);
+  PCExodusFile pc_input( filein, pce::read );
   int num_blks = pc_input.get_num_sweep_vols();
 
   if ( ! myrank ) printf( "\n# Input file read (%d subdomains).\n", num_blks );
