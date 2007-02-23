@@ -6,6 +6,7 @@
 
 #include "PCExodusFile.hpp"
 #include "CMLSweeper.hpp"
+#include "HexQuality.hpp"
 
 void WriteLocalExodusMesh( int num_points_out, int num_hexes, 
                            double* x_coor, double* y_coor, double* z_coor, 
@@ -25,8 +26,9 @@ void WriteLocalExodusMesh( int num_points_out, int num_hexes,
 }
 
 int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id, 
-			      char* fileout, bool verbose,
-			      int& num_points_out, int& num_hexes ) {
+			      char* fileout, 
+			      int& num_points_out, int& num_hexes,
+                              double& q_mesh, bool verbose ) {
   // Read sweep subdomain parameters
   int sweep_id, num_quads;
   pc_input->read_sweep_prop(vol_id, sweep_id, num_quads);
@@ -60,7 +62,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   printf( "\nSurface information for subdomain %d:\n", vol_id );
   printf( "  number sources = %d\n", num_src_surf);
   printf( "  number linking = %d\n", num_lnk_surf);
-  printf( "  number target  = %d\n", num_tgt_surf);
+  printf( "  number targets = %d\n", num_tgt_surf);
   printf( "	      total = %d\n", num_surfs);
   
   int num_surf_quads[num_surfs];
@@ -110,6 +112,27 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   sweeper.get_mesh( num_points_out, x_coor_m, y_coor_m, z_coor_m,
 		    num_hexes, connect_m );
 
+  // Calculate mesh quality
+  if ( 1 ) 
+    {
+    q_mesh = 0.;
+    double coordinates[8][3];
+    int *c = connect_m;
+    for ( int i = 0; i < num_hexes; ++i ) 
+      {
+      for ( int j = 0; j < 8; ++j ) 
+        {
+        coordinates[j][0] = x_coor_m[c[j]];
+        coordinates[j][1] = y_coor_m[c[j]];
+        coordinates[j][2] = z_coor_m[c[j]];
+        }
+      q_mesh += HexQuality::EdgeRatio( coordinates );
+      c += 8;
+      }
+    q_mesh /= num_hexes;
+    printf(" Average quality of mesh %d: %G\n", vol_id, q_mesh );
+    }
+
   // Write mesh
   WriteLocalExodusMesh( num_points_out, num_hexes, 
 			x_coor_m, y_coor_m, z_coor_m,
@@ -120,10 +143,12 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 void CalculateGlobalStats( int nproc, 
 			   int* n_pts_g, int* n_pts_total, 
 			   int* n_hex_g, int* n_hex_total,
+                           double* q_mesh_g, double* q_mesh_total,
                            int verbose ) {
   int iproc;
   *n_pts_total = 0;
   *n_hex_total = 0;
+  *q_mesh_total = 0.;
   
   if ( verbose )
     {
@@ -138,7 +163,9 @@ void CalculateGlobalStats( int nproc,
       }
     *n_pts_total += n_pts_g[iproc];
     *n_hex_total += n_hex_g[iproc];
+    *q_mesh_total += n_hex_g[iproc] * q_mesh_g[iproc];
     }
+  *q_mesh_total /= *n_hex_total;
 }
 
 int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose ) {
@@ -211,6 +238,7 @@ int main(int argc, char **argv) {
   MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
   MPI_Comm_size( MPI_COMM_WORLD, &nproc );
   int n_pts_g[nproc], n_hex_g[nproc], proc_assign[nsub];
+  double q_mesh_g[nproc];
 
   if ( ! myrank ) 
     {
@@ -240,6 +268,9 @@ int main(int argc, char **argv) {
   n_pts_l[0] = 0;
   n_hex_l[0] = 0;
 
+  double q_mesh_l[1];
+  q_mesh_l[0] = 0.;
+
   // Visit each subdomain
   for ( int vol_id = 0; vol_id < num_blks; ++ vol_id ) 
     {
@@ -247,10 +278,15 @@ int main(int argc, char **argv) {
       {
       printf( "========\nProcess %d to handle subdomain %d.\n", myrank, vol_id );
       int num_points_out, num_hexes;
+      double q_mesh;
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
-                                                verbose, num_points_out, num_hexes );
+                                                num_points_out, num_hexes,
+                                                q_mesh, verbose );
+      // Update local statistics
+      q_mesh_l[0] = n_hex_l[0] * q_mesh_l[0] + num_hexes * q_mesh;
       n_pts_l[0] += num_points_out;
       n_hex_l[0] += num_hexes;
+      q_mesh_l[0] /= n_hex_l[0];
 
       if ( ! sweepable ) 
         {
@@ -262,6 +298,7 @@ int main(int argc, char **argv) {
 
   MPI_Gather( n_pts_l, 1, MPI_INTEGER, n_pts_g, 1, MPI_INTEGER, 0, MPI_COMM_WORLD );
   MPI_Gather( n_hex_l, 1, MPI_INTEGER, n_hex_g, 1, MPI_INTEGER, 0, MPI_COMM_WORLD );
+  MPI_Gather( q_mesh_l, 1, MPI_DOUBLE, q_mesh_g, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD );
 
   // Just for the sake of synchronizing printouts:
   MPI_Barrier( MPI_COMM_WORLD );
@@ -269,10 +306,15 @@ int main(int argc, char **argv) {
   if ( ! myrank ) 
     {
     int n_pts_total, n_hex_total;
-    CalculateGlobalStats( nproc, n_pts_g, &n_pts_total, n_hex_g, &n_hex_total, 1 );
+    double q_mesh_total;
+    CalculateGlobalStats( nproc, 
+                          n_pts_g, &n_pts_total, 
+                          n_hex_g, &n_hex_total, 
+                          q_mesh_g, &q_mesh_total, 1 );
     printf( "\n# Global statistics:\n" );
     printf( "  total number of points: %d\n", n_pts_total );
     printf( "  total number of hexes:  %d\n", n_hex_total );
+    printf( "  average hex quality:    %G\n", q_mesh_total );
     }
   
   MPI_Finalize();
