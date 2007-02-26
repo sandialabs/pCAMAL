@@ -134,13 +134,13 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 }
 
 void CalculateGlobalStats( int nproc, 
-			   int* n_pts_g, int* n_pts_total, 
-			   int* n_hex_g, int* n_hex_total,
+			   int* n_pts_g, int& n_pts_total, 
+			   int* n_hex_g, int& n_hex_total,
                            double* q_mesh_g, double* q_mesh_total,
                            int verbose ) {
   int iproc;
-  *n_pts_total = 0;
-  *n_hex_total = 0;
+  n_pts_total = 0;
+  n_hex_total = 0;
   q_mesh_total[1] = 0.;
   
   if ( verbose )
@@ -154,11 +154,11 @@ void CalculateGlobalStats( int nproc,
       printf( "   processor %d computed %d points and %d hexes\n", 
               iproc, n_pts_g[iproc], n_hex_g[iproc] );
       }
-    *n_pts_total += n_pts_g[iproc];
-    *n_hex_total += n_hex_g[iproc];
+    n_pts_total += n_pts_g[iproc];
+    n_hex_total += n_hex_g[iproc];
     q_mesh_total[1] += n_hex_g[iproc] * q_mesh_g[4 * iproc + 1];
     }
-  q_mesh_total[1] /= *n_hex_total;
+  q_mesh_total[1] /= n_hex_total;
 }
 
 int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose ) {
@@ -310,8 +310,8 @@ int main(int argc, char **argv) {
     int n_pts_total, n_hex_total;
     double q_mesh_total[4];
     CalculateGlobalStats( nproc, 
-                          n_pts_g, &n_pts_total, 
-                          n_hex_g, &n_hex_total, 
+                          n_pts_g, n_pts_total, 
+                          n_hex_g, n_hex_total, 
                           q_mesh_g, q_mesh_total, 1 );
     printf( "\n# Global statistics:\n" );
     printf( "  total number of points: %d\n", n_pts_total );
