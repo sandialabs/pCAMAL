@@ -6,13 +6,9 @@ class HexQuality
 public:
   static double EdgeRatio( double coordinates[][3] );
 
-protected:
-  HexQuality();
-  ~HexQuality();
-
 private:
-  HexQuality( const HexQuality& ); // Not implemented.
-  void operator = ( const HexQuality& ); // Not implemented.
+  HexQuality() {};
+  ~HexQuality() {};
 };
 
 #endif // HEX_QUALITY_HPP
