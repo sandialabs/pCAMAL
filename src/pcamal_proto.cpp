@@ -138,16 +138,19 @@ void CalculateGlobalStats( int nproc,
 			   int* n_hex_g, int& n_hex_total,
                            double* q_mesh_g, double* q_mesh_total,
                            int verbose ) {
-  int iproc;
   n_pts_total = 0;
   n_hex_total = 0;
-  q_mesh_total[1] = 0.;
+  q_mesh_total[0] = DBL_MAX; // min
+  q_mesh_total[1] = 0.; // mean
+  q_mesh_total[2] = 0.; // max
+  q_mesh_total[3] = 0.; // stdv
   
   if ( verbose )
     {
     printf( "\n# Local statistics:\n" );
     }
-  for ( iproc = 0; iproc < nproc; ++ iproc )
+  int ix4  = 0;
+  for ( int iproc = 0; iproc < nproc; ++ iproc, ix4 += 4 )
     {
     if ( verbose )
       {
@@ -156,7 +159,11 @@ void CalculateGlobalStats( int nproc,
       }
     n_pts_total += n_pts_g[iproc];
     n_hex_total += n_hex_g[iproc];
-    q_mesh_total[1] += n_hex_g[iproc] * q_mesh_g[4 * iproc + 1];
+    q_mesh_total[1] += n_hex_g[iproc] * q_mesh_g[ix4 + 1];
+
+    if ( q_mesh_g[ix4] < q_mesh_total[0] ) q_mesh_total[0] = q_mesh_g[ix4];
+    
+    if ( q_mesh_g[ix4 + 2] > q_mesh_total[2] ) q_mesh_total[2] = q_mesh_g[ix4 + 2];
     }
   q_mesh_total[1] /= n_hex_total;
 }
