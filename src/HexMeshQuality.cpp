@@ -2,6 +2,8 @@
 #include "HexQuality.hpp"
 #include "HexMeshQuality.hpp"
 
+typedef double (*QualityType)( double[][3] );
+
 HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
 				int num_hexes, int* connect, int qualityMeasure )
 {
@@ -9,6 +11,19 @@ HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
     {
     this->min = this->max = this->mean = this->stdv = 0.;
     return;
+    }
+  
+  QualityType hexQuality;
+  switch ( qualityMeasure )
+    {
+    case PCAMAL_QUALITY_EDGE_RATIO:
+      hexQuality = HexQuality::EdgeRatio;
+      break;
+    case PCAMAL_QUALITY_SHAPE:
+      hexQuality = HexQuality::Shape;
+      break;
+    default:
+      hexQuality = HexQuality::Shape;
     }
 
   double S2 = 0.;
@@ -21,7 +36,7 @@ HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
     coordinates[j][1] = y_coor[c[j]];
     coordinates[j][2] = z_coor[c[j]];
     }
-  q_elem = HexQuality::Shape( coordinates );
+  q_elem = hexQuality( coordinates );
   this->min = this->max = this->mean = S2 = q_elem;
   c += 8;
 
@@ -33,7 +48,7 @@ HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
       coordinates[j][1] = y_coor[c[j]];
       coordinates[j][2] = z_coor[c[j]];
       }
-    q_elem = HexQuality::Shape( coordinates );
+    q_elem = hexQuality( coordinates );
     this->mean += q_elem;
     S2 += q_elem * q_elem;
     if ( q_elem < this->min) this->min = q_elem;

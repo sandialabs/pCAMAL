@@ -284,7 +284,7 @@ int main(int argc, char **argv) {
       double q_mesh[4];
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
                                                 num_points_out, num_hexes,
-                                                q_mesh, PCAMAL_QUALITY_EDGE_RATIO,
+                                                q_mesh, PCAMAL_QUALITY_SHAPE,
 						verbose );
 
       // Update local statistics
@@ -323,7 +323,7 @@ int main(int argc, char **argv) {
     printf( "\n# Global statistics:\n" );
     printf( "  total number of points: %d\n", n_pts_total );
     printf( "  total number of hexes:  %d\n", n_hex_total );
-    printf( "  Mesh quality (min/mean/max/stdv): %G %G %G %G\n",
+    printf( "  mesh quality (min/mean/max/stdv): %G %G %G %G\n",
 	    q_mesh_total[0], q_mesh_total[1], q_mesh_total[2], q_mesh_total[3] );
     }
   
