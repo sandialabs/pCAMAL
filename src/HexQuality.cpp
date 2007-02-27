@@ -1,12 +1,32 @@
 #include "math.h"
+#include "stdio.h"
 #include "HexQuality.hpp"
 
-double length_squared( double edge[3] )
+inline double length_squared( const double edge[3] )
 {
   return edge[0] * edge[0] + edge[1] * edge[1] + edge[2] * edge[2];
 }
 
-void make_hex_edges( double coordinates[8][3], double edges[12][3] )
+inline void vectorDifference( const double coordinates[8][3], 
+                              int a, int b, double vd[3] )
+{
+  for ( int i = 0; i < 3; ++ i )
+    {
+    vd[i] = coordinates[b][i] - coordinates[a][i];
+    }
+}
+
+inline double det3x3( const double c1[3], 
+                      const double c2[3], 
+                      const double c3[3] )
+{
+  return c1[0]*c2[1]*c3[2] + c2[0]*c3[1]*c1[2] + c3[0]*c1[1]*c2[2] -
+         c1[0]*c3[1]*c2[2] - c2[0]*c1[1]*c3[2] - c3[0]*c2[1]*c1[2];
+}
+
+
+inline void make_hex_edges( const double coordinates[8][3], 
+                            double edges[12][3] )
 {
 
   for ( int i = 0; i < 3; ++ i )
@@ -173,3 +193,100 @@ double HexQuality::EdgeRatio( double coordinates[8][3] )
   return sqrt( M2 / m2 );
 }
 
+double HexQuality::Shape( double coordinates[8][3] )
+{
+  double det, shape;
+  double min_shape = 1.; 
+  static const double two_thirds = 2. / 3.;
+
+  double  xxi[3], xet[3], xze[3];
+
+  // J(0,0,0):
+  vectorDifference( coordinates, 1, 0, xxi );
+  vectorDifference( coordinates, 3, 0, xet );
+  vectorDifference( coordinates, 4, 0, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+  
+
+  // J(1,0,0):
+  vectorDifference( coordinates, 2, 1, xxi );
+  vectorDifference( coordinates, 0, 1, xet );
+  vectorDifference( coordinates, 5, 1, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+  
+
+  // J(1,1,0):
+  vectorDifference( coordinates, 3, 2, xxi );
+  vectorDifference( coordinates, 1, 2, xet );
+  vectorDifference( coordinates, 6, 2, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+  
+
+  // J(0,1,0):
+  vectorDifference( coordinates, 0, 3, xxi );
+  vectorDifference( coordinates, 2, 3, xet );
+  vectorDifference( coordinates, 7, 3, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+  
+
+  // J(0,0,1):
+  vectorDifference( coordinates, 7, 4, xxi );
+  vectorDifference( coordinates, 5, 4, xet );
+  vectorDifference( coordinates, 0, 4, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+  
+
+  // J(1,0,1):
+  vectorDifference( coordinates, 4, 5, xxi );
+  vectorDifference( coordinates, 6, 5, xet );
+  vectorDifference( coordinates, 1, 5, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+  
+
+  // J(1,1,1):
+  vectorDifference( coordinates, 5, 6, xxi );
+  vectorDifference( coordinates, 7, 6, xet );
+  vectorDifference( coordinates, 2, 6, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+  
+
+  // J(1,1,1):
+  vectorDifference( coordinates, 6, 7, xxi );
+  vectorDifference( coordinates, 4, 7, xet );
+  vectorDifference( coordinates, 3, 7, xze );
+
+  det = det3x3( xxi, xet, xze );
+  shape = 3 * pow( det, two_thirds) / ( length_squared( xxi ) + length_squared( xet ) + length_squared( xze ) );
+  
+  if( shape < min_shape ) { min_shape = shape; }
+
+  return min_shape;
+}

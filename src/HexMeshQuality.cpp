@@ -21,7 +21,7 @@ HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
     coordinates[j][1] = y_coor[c[j]];
     coordinates[j][2] = z_coor[c[j]];
     }
-  q_elem = HexQuality::EdgeRatio( coordinates );
+  q_elem = HexQuality::Shape( coordinates );
   this->min = this->max = this->mean = S2 = q_elem;
   c += 8;
 
@@ -33,7 +33,7 @@ HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
       coordinates[j][1] = y_coor[c[j]];
       coordinates[j][2] = z_coor[c[j]];
       }
-    q_elem = HexQuality::EdgeRatio( coordinates );
+    q_elem = HexQuality::Shape( coordinates );
     this->mean += q_elem;
     S2 += q_elem * q_elem;
     if ( q_elem < this->min) this->min = q_elem;
