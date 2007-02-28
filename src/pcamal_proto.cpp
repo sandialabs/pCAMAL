@@ -121,10 +121,11 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   q_mesh[0] = hmq.getMinQuality();
   q_mesh[1] = hmq.getMeanQuality();
   q_mesh[2] = hmq.getMaxQuality();
-  q_mesh[3] = hmq.getStdvQuality();
+  q_mesh[3] = hmq.getMom2Quality();
 
   printf( "Mesh quality (min/mean/max/stdv) for subdomain %d: %G %G %G %G\n",
-	  vol_id, q_mesh[0], q_mesh[1], q_mesh[2], q_mesh[3] );
+	  vol_id, q_mesh[0], q_mesh[1], q_mesh[2], 
+          sqrt( q_mesh[3] - q_mesh[1] * q_mesh[1] ) );
 
   // Write mesh
   WriteLocalExodusMesh( num_points_out, num_hexes, 
@@ -143,7 +144,7 @@ void CalculateGlobalStats( int nproc,
   q_mesh_total[0] = DBL_MAX; // min
   q_mesh_total[1] = 0.; // mean
   q_mesh_total[2] = 0.; // max
-  q_mesh_total[3] = 0.; // stdv
+  q_mesh_total[3] = 0.; // mom2
   
   if ( verbose )
     {
@@ -160,12 +161,14 @@ void CalculateGlobalStats( int nproc,
     n_pts_total += n_pts_g[iproc];
     n_hex_total += n_hex_g[iproc];
     q_mesh_total[1] += n_hex_g[iproc] * q_mesh_g[ix4 + 1];
+    q_mesh_total[3] += n_hex_g[iproc] * q_mesh_g[ix4 + 3];
 
     if ( q_mesh_g[ix4] < q_mesh_total[0] ) q_mesh_total[0] = q_mesh_g[ix4];
     
     if ( q_mesh_g[ix4 + 2] > q_mesh_total[2] ) q_mesh_total[2] = q_mesh_g[ix4 + 2];
     }
   q_mesh_total[1] /= n_hex_total;
+  q_mesh_total[3] /= n_hex_total;
 }
 
 int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose ) {
@@ -272,7 +275,7 @@ int main(int argc, char **argv) {
   q_mesh_l[0] = DBL_MAX; // min
   q_mesh_l[1] = 0.; // mean
   q_mesh_l[2] = 0.; // max
-  q_mesh_l[3] = 0.; // stdv
+  q_mesh_l[3] = 0.; // mom2
 
   // Visit each subdomain
   for ( int vol_id = 0; vol_id < num_blks; ++ vol_id ) 
@@ -288,13 +291,16 @@ int main(int argc, char **argv) {
 						verbose );
 
       // Update local statistics
+      // mean & mom2
       q_mesh_l[1] = n_hex_l[0] * q_mesh_l[1] + num_hexes * q_mesh[1];
+      q_mesh_l[3] = n_hex_l[0] * q_mesh_l[3] + num_hexes * q_mesh[3];
       n_pts_l[0] += num_points_out;
       n_hex_l[0] += num_hexes;
       q_mesh_l[1] /= n_hex_l[0];
+      q_mesh_l[3] /= n_hex_l[0];
 
+      // min & max
       if ( q_mesh[0] < q_mesh_l[0] ) q_mesh_l[0] = q_mesh[0];
-
       if ( q_mesh[2] > q_mesh_l[2] ) q_mesh_l[2] = q_mesh[2];
 
       if ( ! sweepable ) 
@@ -324,7 +330,8 @@ int main(int argc, char **argv) {
     printf( "  total number of points: %d\n", n_pts_total );
     printf( "  total number of hexes:  %d\n", n_hex_total );
     printf( "  mesh quality (min/mean/max/stdv): %G %G %G %G\n",
-	    q_mesh_total[0], q_mesh_total[1], q_mesh_total[2], q_mesh_total[3] );
+	    q_mesh_total[0], q_mesh_total[1], q_mesh_total[2], 
+            sqrt( q_mesh_total[3] - q_mesh_total[1] * q_mesh_total[1] ) );
     }
   
   MPI_Finalize();

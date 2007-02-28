@@ -17,13 +17,13 @@ public:
   double getMinQuality() const {return this->min;};
   double getMaxQuality() const {return this->max;};
   double getMeanQuality() const {return this->mean;};
-  double getStdvQuality() const {return this->stdv;};
+  double getMom2Quality() const {return this->mom2;};
 
 private:
   double min;
   double max;
   double mean;
-  double stdv;
+  double mom2;
 };
 
 #endif // HEX_MESH_QUALITY_HPP
