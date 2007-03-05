@@ -12,7 +12,7 @@ public:
   HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
 				int num_hexes, int* connect, int qualityMeasure );
 
-  ~HexMeshQuality() {};
+  virtual ~HexMeshQuality() {};
 
   double getMinQuality() const {return this->min;};
   double getMaxQuality() const {return this->max;};

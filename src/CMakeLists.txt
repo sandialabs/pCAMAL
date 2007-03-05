@@ -9,6 +9,8 @@ SET (PCAMAL_MPI_CXX_LIBRARY CACHE FILEPATH "MPI CXX library.")
 
 SET (PCAMAL_MPI_INCLUDE CACHE FILEPATH "MPI include directory.")
 
+SET (PCAMAL_MPI_PTHREADS_LIBRARY CACHE FILEPATH "MPI pthreads library.")
+
 SET (CAMAL_DIR ${PCAMAL_DIR}/utilities/camal)
 SET (EXODUS_DIR ${PCAMAL_DIR}/utilities/exodus/exodus-4.01)
 SET (NETCDF_DIR ${PCAMAL_DIR}/utilities/netcdf-3.4.snl3)
