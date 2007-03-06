@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include "PCExodusFile.hpp"
-#include "CMLSweeper.hpp"
+#include "PCMLSweeper.hpp"
 
 void convert_conn(int num_hexes, int* connect);
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     }  
 
       // setup sweeper
-    CMLSweeper sweeper;
+    PCMLSweeper sweeper;
     sweeper.set_boundary_mesh(num_points, x_coor, y_coor, z_coor,
                               num_quads, connect,
                               num_src_surf, num_surf_quads, num_tgt_quads);

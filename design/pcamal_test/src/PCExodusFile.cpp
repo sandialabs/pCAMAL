@@ -6,6 +6,7 @@
 #include <string.h>
 #include "PCExodusFile.hpp"
 #include "PCSweepVolume.hpp"
+#include "PCMLSweeper.hpp"
 
 PCExodusFile::PCExodusFile(char* const filename, pce::FileOp op)
         : exoID(0), cpuWord(8), fileWord(0), numDim(0), numNodes(0),
@@ -398,17 +399,14 @@ int PCExodusFile::convert_sweep_data(int* eb_ids,
       vol = sweep_map[sweep_id];
     }
 
-    const int SOURCE_TYPE  = 1;
-    const int LINKING_TYPE = 2;
-    const int TARGET_TYPE  = 3;
     switch (surf_types[i]) {
-      case SOURCE_TYPE:
+      case PCMLSweeper::SOURCE:
           vol->add_source_id(eb_ids[i]);
           break;
-      case LINKING_TYPE:
+      case PCMLSweeper::LINKING:
           vol->add_linking_id(eb_ids[i]);
           break;
-      case TARGET_TYPE:
+      case PCMLSweeper::TARGET:
           vol->put_target_id(eb_ids[i]);
           break;
       default:
