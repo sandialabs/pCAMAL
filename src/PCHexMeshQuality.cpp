@@ -1,11 +1,11 @@
 #include "math.h"
-#include "HexQuality.hpp"
-#include "HexMeshQuality.hpp"
+#include "PCHexQuality.hpp"
+#include "PCHexMeshQuality.hpp"
 
 typedef double (*QualityType)( double[][3] );
 
-HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
-				int num_hexes, int* connect, int qualityMeasure )
+PCHexMeshQuality::PCHexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
+				    int num_hexes, int* connect, int qualityMeasure )
 {
   if ( num_hexes <= 0 ) 
     {
@@ -17,13 +17,13 @@ HexMeshQuality::HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
   switch ( qualityMeasure )
     {
     case PCAMAL_QUALITY_EDGE_RATIO:
-      hexQuality = HexQuality::EdgeRatio;
+      hexQuality = PCHexQuality::EdgeRatio;
       break;
     case PCAMAL_QUALITY_SHAPE:
-      hexQuality = HexQuality::Shape;
+      hexQuality = PCHexQuality::Shape;
       break;
     default:
-      hexQuality = HexQuality::Shape;
+      hexQuality = PCHexQuality::Shape;
     }
 
   double q_elem;

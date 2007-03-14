@@ -7,8 +7,8 @@
 
 #include "PCExodusFile.hpp"
 #include "PCMLSweeper.hpp"
-#include "HexQuality.hpp"
-#include "HexMeshQuality.hpp"
+#include "PCHexQuality.hpp"
+#include "PCHexMeshQuality.hpp"
 
 void WriteLocalExodusMesh( int num_points_out, int num_hexes, 
                            double* x_coor, double* y_coor, double* z_coor, 
@@ -116,8 +116,8 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 		    num_hexes, connect_m );
 
   // Get mesh quality
-  HexMeshQuality hmq( x_coor_m, y_coor_m, z_coor_m, 
-		      num_hexes, connect_m, quality_measure );
+  PCHexMeshQuality hmq( x_coor_m, y_coor_m, z_coor_m, 
+			num_hexes, connect_m, quality_measure );
   q_mesh[0] = hmq.getMinQuality();
   q_mesh[1] = hmq.getMeanQuality();
   q_mesh[2] = hmq.getMaxQuality();

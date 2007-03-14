@@ -31,8 +31,8 @@ LINK_DIRECTORIES (
 SET (PCAMAL_SRCS pcamal_proto.cpp
 		 PCExodusFile.cpp
 		 PCSweepVolume.cpp
-		 HexQuality.cpp
-		 HexMeshQuality.cpp)
+		 PCHexQuality.cpp
+		 PCHexMeshQuality.cpp)
 
 ADD_EXECUTABLE (pcamal_proto ${PCAMAL_SRCS})
 

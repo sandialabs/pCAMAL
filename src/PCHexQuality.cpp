@@ -1,6 +1,6 @@
 #include "math.h"
 #include "stdio.h"
-#include "HexQuality.hpp"
+#include "PCHexQuality.hpp"
 
 inline double length_squared( const double edge[3] )
 {
@@ -90,7 +90,7 @@ inline void make_hex_edges( const double coordinates[8][3],
     }
 }
 
-double HexQuality::EdgeRatio( double coordinates[8][3] )
+double PCHexQuality::EdgeRatio( double coordinates[8][3] )
 {
   double edges[12][3];
   make_hex_edges(coordinates, edges);
@@ -193,7 +193,7 @@ double HexQuality::EdgeRatio( double coordinates[8][3] )
   return sqrt( M2 / m2 );
 }
 
-double HexQuality::Shape( double coordinates[8][3] )
+double PCHexQuality::Shape( double coordinates[8][3] )
 {
   double det, shape;
   double min_shape = 1.; 

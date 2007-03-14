@@ -1,18 +1,18 @@
-#ifndef HEX_MESH_QUALITY_HPP
-#define HEX_MESH_QUALITY_HPP
+#ifndef PC_HEX_MESH_QUALITY_HPP
+#define PC_HEX_MESH_QUALITY_HPP
 
-class HexQuality;
+class PCHexQuality;
 
 #define PCAMAL_QUALITY_EDGE_RATIO 0
 #define PCAMAL_QUALITY_SHAPE 1
 
-class HexMeshQuality
+class PCHexMeshQuality
 {
 public:
-  HexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
+  PCHexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
 				int num_hexes, int* connect, int qualityMeasure );
 
-  virtual ~HexMeshQuality() {};
+  virtual ~PCHexMeshQuality() {};
 
   double getMinQuality() const {return this->min;};
   double getMaxQuality() const {return this->max;};
@@ -26,4 +26,4 @@ private:
   double mom2;
 };
 
-#endif // HEX_MESH_QUALITY_HPP
+#endif // PC_HEX_MESH_QUALITY_HPP
