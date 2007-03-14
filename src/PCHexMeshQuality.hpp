@@ -10,7 +10,7 @@ class PCHexMeshQuality
 {
 public:
   PCHexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
-				int num_hexes, int* connect, int qualityMeasure );
+		    int num_hexes, int* connect, int qualityMeasure );
 
   virtual ~PCHexMeshQuality() {};
 
