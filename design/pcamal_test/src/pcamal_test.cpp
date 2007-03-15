@@ -77,6 +77,8 @@ int main(int argc, char **argv)
     // open input file
   PCExodusFile pc_input(filein, pce::read);
   int num_blks = pc_input.get_num_sweep_vols();
+  int num_vol_hexes[num_blks];
+  pc_input.get_num_hexes(num_blks, num_vol_hexes);
 
     // for each element block 
   int vol_id;
@@ -87,7 +89,8 @@ int main(int argc, char **argv)
     if (sweep_id == 0)
       continue;
     if (verbose) {
-      printf("\nSweeping Volume %d (Cubit Volume %d)\n", vol_id, sweep_id);
+      printf("\nSweeping Volume %d (Cubit Volume %d): est. %d hexes\n",
+             vol_id, sweep_id, num_vol_hexes[vol_id]);
     }
     
       // read coordinates (memory allocated in read_sweep_coord)
@@ -162,6 +165,8 @@ int main(int argc, char **argv)
       // generate swept hex mesh
     int num_points_out, num_hexes;
     sweeper.generate_mesh(num_points_out, num_hexes);
+    printf("Number of estimated hexes: %d -- actual: %d\n",
+           num_vol_hexes[vol_id], num_hexes);
 
       // retrieve mesh
     x_coor = new double[num_points_out];
