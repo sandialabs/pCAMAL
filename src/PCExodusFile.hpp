@@ -23,7 +23,8 @@ public:
   PCExodusFile(char* const filename, pce::FileOp op);
   virtual ~PCExodusFile();
   
-  int get_num_sweep_vols();
+  int  get_num_sweep_vols();
+  int  get_num_hexes(int num_blks, int* num_hexes);
   void read_sweep_prop(int vol_id, int &sweep_id, int &num_quads);
   void read_sweep_coord(int vol_id, int& num_points, 
                         double* &x_coor, double* &y_coor, 
@@ -57,6 +58,9 @@ private:
                           std::map<int, PCSweepVolume*>& sweep_map);
   void delete_sweep_volumes();
   void read_init();
+  int  update_hex_count(int* num_hexes, int* surf_sweep_ids1, 
+                        int* surf_types1, int* surf_sweep_ids2,
+                        int* surf_types2);
   int  update_quad_count();
 };
 

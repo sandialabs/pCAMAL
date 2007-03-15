@@ -10,7 +10,8 @@
 class PCSweepVolume
 {
 public:
-  PCSweepVolume() : sweepId(0), numQuads(0), elemBlockId(0), targetId(0)
+  PCSweepVolume() : sweepId(0), numHexes(0), numQuads(0), elemBlockId(0), 
+                    targetId(0)
       {}
   virtual ~PCSweepVolume()
       {}
@@ -18,6 +19,8 @@ public:
   int  get_elem_block_id() {return elemBlockId;}
   void put_elem_block_id(int blk_id) {elemBlockId = blk_id;}
   
+  int  get_num_hexes() {return numHexes;}
+  void put_num_hexes(int num_hexes) {numHexes = num_hexes;}
   int  get_num_quads();
 
   int  get_num_surfs(int &num_src_surf, int &num_lnk_surf, int &num_tgt_surf);
@@ -38,7 +41,7 @@ public:
 
 private:
   int sweepId;
-//   int numNodes;
+  int numHexes;
   int numQuads;
   int elemBlockId;
   int targetId;
