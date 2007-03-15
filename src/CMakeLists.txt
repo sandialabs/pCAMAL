@@ -38,4 +38,5 @@ ADD_EXECUTABLE (pcamal_proto ${PCAMAL_SRCS})
 
 TARGET_LINK_LIBRARIES (pcamal_proto camal_sweep camal_shr camal_util
 		       ${PCAMAL_MPI_LIBRARY} ${PCAMAL_MPI_CXX_LIBRARY}
+                       ${PCAMAL_MPI_PTHREADS_LIBRARY}
 		       exoIIv2c401 netcdf dl)
