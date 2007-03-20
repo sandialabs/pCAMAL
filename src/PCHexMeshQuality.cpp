@@ -1,11 +1,22 @@
-#include "math.h"
 #include "PCHexQuality.hpp"
 #include "PCHexMeshQuality.hpp"
 
+#include <cmath>
+#include <string>
+
+using namespace std;
+
 typedef double (*QualityType)( double[][3] );
 
+const char* HexQualityNames[] =
+{ 
+  "Edge Ratio",
+  "Shape"
+};
+
 PCHexMeshQuality::PCHexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
-				    int num_hexes, int* connect, int qualityMeasure )
+				    int num_hexes, int* connect, 
+				    int qualityIndex, string qualityName )
 {
   if ( num_hexes <= 0 ) 
     {
@@ -13,8 +24,10 @@ PCHexMeshQuality::PCHexMeshQuality( double* x_coor, double* y_coor, double* z_co
     return;
     }
   
+  qualityName = HexQualityNames[qualityIndex];
+
   QualityType hexQuality;
-  switch ( qualityMeasure )
+  switch ( qualityIndex )
     {
     case PCAMAL_QUALITY_EDGE_RATIO:
       hexQuality = PCHexQuality::EdgeRatio;

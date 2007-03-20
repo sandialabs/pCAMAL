@@ -1,14 +1,16 @@
 #include "mpi.h"
 #include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
-#include "float.h"
+
+#include <cfloat>
+#include <cmath>
+#include <string>
+#include <iostream>
 
 #include "PCExodusFile.hpp"
 #include "PCMLSweeper.hpp"
-#include "PCHexQuality.hpp"
 #include "PCHexMeshQuality.hpp"
+
+using namespace std;
 
 void WriteLocalExodusMesh( int num_points_out, int num_hexes, 
                            double* x_coor, double* y_coor, double* z_coor, 
@@ -30,7 +32,7 @@ void WriteLocalExodusMesh( int num_points_out, int num_hexes,
 int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id, 
 			      char* fileout, 
 			      int& num_points_out, int& num_hexes,
-                              double* q_mesh, int quality_measure, 
+                              double* q_mesh, int qualityIndex, 
 			      bool verbose ) {
   // Read sweep subdomain parameters
   int sweep_id, num_quads;
@@ -116,8 +118,10 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 		    num_hexes, connect_m );
 
   // Get mesh quality
+  string qualityName;
   PCHexMeshQuality hmq( x_coor_m, y_coor_m, z_coor_m, 
-			num_hexes, connect_m, quality_measure );
+			num_hexes, connect_m, 
+			qualityIndex, qualityName );
   q_mesh[0] = hmq.getMinQuality();
   q_mesh[1] = hmq.getMeanQuality();
   q_mesh[2] = hmq.getMaxQuality();

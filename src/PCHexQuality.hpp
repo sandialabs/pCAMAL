@@ -6,7 +6,7 @@ class PCHexQuality
 public:
   static double EdgeRatio( double coordinates[][3] );
   static double Shape( double coordinates[][3] );
-
+ 
 private:
   PCHexQuality() {};
   ~PCHexQuality() {};

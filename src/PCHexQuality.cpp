@@ -1,5 +1,5 @@
-#include "math.h"
-#include "stdio.h"
+#include <cmath>
+
 #include "PCHexQuality.hpp"
 
 inline double length_squared( const double edge[3] )
