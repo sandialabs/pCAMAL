@@ -16,7 +16,7 @@ const char* HexQualityNames[] =
 
 PCHexMeshQuality::PCHexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
 				    int num_hexes, int* connect, 
-				    int qualityIndex, string qualityName )
+				    int qualityIndex, string& qualityName )
 {
   if ( num_hexes <= 0 ) 
     {

@@ -13,7 +13,7 @@ class PCHexMeshQuality
 public:
   PCHexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
 		    int num_hexes, int* connect, 
-		    int qualityIndex, std::string qualityName );
+		    int qualityIndex, std::string& qualityName );
 
   virtual ~PCHexMeshQuality() {};
 

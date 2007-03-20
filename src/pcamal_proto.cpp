@@ -1,5 +1,4 @@
 #include "mpi.h"
-#include "stdio.h"
 
 #include <cfloat>
 #include <cmath>
@@ -12,12 +11,19 @@
 
 using namespace std;
 
+string qualityName; 
+
 void WriteLocalExodusMesh( int num_points_out, int num_hexes, 
                            double* x_coor, double* y_coor, double* z_coor, 
 			   int* connect, int sweep_id, char* fileout ) {
   // Write local Exodus II output file
-  printf( "Writing an Exodus II mesh %d with %d points and %d hexes.\n",
-	  sweep_id, num_points_out, num_hexes );
+  cout << "Writing Exodus II mesh " 
+       << sweep_id 
+       << " with " 
+       << num_points_out 
+       << " points and " 
+       << num_hexes 
+       << " hexes." << endl;
 
   char filename[strlen( fileout ) + 10];
   sprintf( filename, "%s.vol%03d.g", fileout, sweep_id );
@@ -50,13 +56,17 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
                              node_ids);
   if ( verbose )
     {
-    printf( "\n			 ---Coordinates---\n" );
-    printf( "  node	   x		y	     z\n" );
+    cout <<  "\n			 ---Coordinates---" << endl;
+    cout <<  "  node	   x		y	     z" << endl;
     int i;
     for (i = 0; i < num_points; i++) 
       {
-      printf( "%8d %12.5e %12.5e %12.5e\n", 
-              i+1, x_coor[i], y_coor[i], z_coor[i]);
+      cout << " "
+	   << i+1 
+	   << x_coor[i] 
+	   << y_coor[i]
+	   << z_coor[i]
+	   << endl;
       }
     }
   
@@ -64,33 +74,65 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   int num_src_surf, num_lnk_surf, num_tgt_surf;
   int num_surfs = pc_input->read_sweep_surf_prop(vol_id, num_src_surf, 
                                                  num_lnk_surf, num_tgt_surf);
-  printf( "\nSurface information for subdomain %d:\n", vol_id );
-  printf( "  number sources = %d\n", num_src_surf);
-  printf( "  number linking = %d\n", num_lnk_surf);
-  printf( "  number targets = %d\n", num_tgt_surf);
-  printf( "	      total = %d\n", num_surfs);
+  cout <<  endl 
+       << "Surface information for subdomain " 
+       << vol_id
+       << ":"
+       << endl
+       <<  "  number sources = "
+       << num_src_surf
+       << endl
+       <<  "  number linking = "
+       << num_lnk_surf
+       << endl
+       <<  "  number targets = "
+       << num_tgt_surf
+       << endl
+       <<  "	   total = " 
+       << num_surfs
+       << endl;
   
   int num_surf_quads[num_surfs];
   pc_input->read_sweep_surf_size( vol_id, num_surfs, num_surf_quads );
   int num_tgt_quads = 0;
   for ( int i = 0; i < num_src_surf; ++i ) num_tgt_quads += num_surf_quads[i];
-  printf( "\nNumber of quads/surface for subdomain %d\n", vol_id );
-  printf( "  Surface	Quads\n" );
+  cout <<  endl 
+       << "Number of quads/surface for subdomain "
+       << vol_id 
+       << endl
+       <<  "Surface  Quads" 
+       << endl;
   for ( int i = 0; i < num_surfs; ++i ) 
     {
-    printf( " %8d %8d\n", i+1, num_surf_quads[i]);
+      cout << " "
+	   << i+1
+	   << ": "
+	   << num_surf_quads[i]
+	   << endl;
     }
   
   int connect[num_quads * 4];
   pc_input->read_sweep_conn( vol_id, num_points, num_quads, node_ids, connect );
   if ( verbose ) 
     {
-    printf( "\n		  ---Connectivity---\n" );
-    printf( "  Quad	n1	  n2	    n3	      n4\n" );
+    cout <<  endl 
+	 << "		  ---Connectivity---" 
+	 << endl;
+    cout <<  "  Quad	n1	  n2	    n3	      n4" 
+	 << endl;
     int *c = connect;
     for ( int i = 0; i < num_quads; ++i ) 
       {
-      printf( "%8d: %8d %8d %8d %8d\n", i+1, c[0], c[1], c[2], c[3]);
+      cout << i+1
+	   << ": "
+	   << c[0]
+	   << " "
+	   << c[1]
+	   << " "
+	   << c[2]
+	   << " "
+	   << c[3]
+	   << endl;
       c += 4;
       }
     }
@@ -118,7 +160,6 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 		    num_hexes, connect_m );
 
   // Get mesh quality
-  string qualityName;
   PCHexMeshQuality hmq( x_coor_m, y_coor_m, z_coor_m, 
 			num_hexes, connect_m, 
 			qualityIndex, qualityName );
@@ -127,9 +168,20 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   q_mesh[2] = hmq.getMaxQuality();
   q_mesh[3] = hmq.getMom2Quality();
 
-  printf( "Mesh quality (min/mean/max/stdv) for subdomain %d: %G %G %G %G\n",
-	  vol_id, q_mesh[0], q_mesh[1], q_mesh[2], 
-          sqrt( q_mesh[3] - q_mesh[1] * q_mesh[1] ) );
+  cout <<  "Mesh quality ("
+       << qualityName.c_str()
+       << ") of subdomain "
+       << vol_id
+       << ":"
+       << " min= "
+       << q_mesh[0]
+       << " mean= "
+       << q_mesh[1]
+       << " max= "
+       << q_mesh[2]
+       << " stdv= "
+       << sqrt( q_mesh[3] - q_mesh[1] * q_mesh[1] )
+       << endl;
 
   // Write mesh
   WriteLocalExodusMesh( num_points_out, num_hexes, 
@@ -152,15 +204,23 @@ void CalculateGlobalStats( int nproc,
   
   if ( verbose )
     {
-    printf( "\n# Local statistics:\n" );
+    cout << endl 
+	 << "# Local statistics:" 
+	 << endl;
     }
   int ix4  = 0;
   for ( int iproc = 0; iproc < nproc; ++ iproc, ix4 += 4 )
     {
     if ( verbose )
       {
-      printf( "   processor %d computed %d points and %d hexes\n", 
-              iproc, n_pts_g[iproc], n_hex_g[iproc] );
+      cout <<  "   processor "
+	   << iproc
+	   << " computed "
+	   << n_pts_g[iproc]
+	   << " points and "
+	   << n_hex_g[iproc]
+	   << " hexes"
+	   << endl;
       }
     n_pts_total += n_pts_g[iproc];
     n_hex_total += n_hex_g[iproc];
@@ -181,7 +241,7 @@ int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose 
     {
     if ( ! myrank ) 
       {
-      printf( "## Error: not enough processors available.\n" );
+      cout <<  "## Error: not enough processors available." << endl;
       }
     return 1;
     }
@@ -195,7 +255,7 @@ int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose 
     
     if ( ! myrank ) 
       {
-      printf( "  load-balancing done (1 subdomain per processor).\n" );
+      cout <<  "  load-balancing done (1 subdomain per processor)." << endl;
       }
     return 0;
     }
@@ -206,17 +266,23 @@ int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose 
     
     if ( ! myrank && verbose )
       {
-      printf( "  load-balancing done:\n" );
-      printf( "    subdomain  processor\n" );
+      cout <<  "  load-balancing done:" << endl;
+      cout <<  "    subdomain  processor" << endl;
       for ( int i = 0; i < nsub ; ++ i )
         {
-        printf( "        %d         %d\n", i, proc_assign[i] ) ;
+        cout <<  "        "
+	     << i
+	     << "         "
+	     << proc_assign[i]
+	     << endl;
         }
       }
     else if ( ! myrank )
       {
-      printf( "  load-balancing done (maximum of %d subdomains per processor).\n",
-              (int) nsub / nproc );
+      cout <<  "  load-balancing done (maximum of "
+	   << (int) nsub / nproc
+	   << " subdomains per processor)."
+	   << endl;
       }
 
     return 0;
@@ -233,7 +299,7 @@ int main(int argc, char **argv) {
 
   if ( argc < 4 ) 
     {
-    printf( "Usage: pcamal_proto <n_subdomains> <filein> <fileout>\n" );
+    cout <<  "Usage: pcamal_proto <n_subdomains> <filein> <fileout>" << endl;
     return 1;
     }
 
@@ -249,24 +315,39 @@ int main(int argc, char **argv) {
 
   if ( ! myrank ) 
     {
-    printf( "===============\n" );
-    printf( "# Starting PCAMAL:\n", nsub );
-    printf( "  number of subdomains: %d\n", nsub );
-    printf( "  number of available processors: %d\n", nproc );
+    cout <<  "===============" 
+	 << endl
+         <<  "# Starting PCAMAL:"
+	 << endl
+         <<  "  number of subdomains: "
+	 << nsub
+	 << endl
+         <<  "  number of available processors: "
+	 << nproc
+	 << endl;
     }
   
   if ( BalanceLoad( myrank, nsub, nproc, proc_assign, 1 ) ) return 1;
 
   if ( ! myrank ) 
     {
-    printf( "  input file name: %s\n", filein );
+    cout <<  "  input file name: "
+	 << filein
+	 << endl;
     }
   
   // Open input file
   PCExodusFile pc_input( filein, pce::read );
   int num_blks = pc_input.get_num_sweep_vols();
 
-  if ( ! myrank ) printf( "\n# Input file read (%d subdomains).\n", num_blks );
+  if ( ! myrank ) 
+    {
+    cout <<  endl 
+         << "# Input file read ("
+         << num_blks
+         << " subdomains)."
+         << endl;
+    }
 
   // Just for the sake of synchronizing printouts:
   MPI_Barrier( MPI_COMM_WORLD );
@@ -286,7 +367,14 @@ int main(int argc, char **argv) {
     {
     if ( myrank == proc_assign[vol_id] ) 
       {
-      printf( "========\nProcess %d to handle subdomain %d.\n", myrank, vol_id );
+      cout <<  "========"
+           << endl
+           << "Process "
+           << myrank
+           << " to handle subdomain "
+           <<  vol_id
+           << "."
+           << endl;
       int num_points_out, num_hexes;
       double q_mesh[4];
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
@@ -309,7 +397,10 @@ int main(int argc, char **argv) {
 
       if ( ! sweepable ) 
         {
-        printf( "## Subdomain %d was not to be swept.\n", vol_id );
+        cout <<  "## Subdomain "
+             << vol_id
+             << "was not to be swept."
+             << endl;
         continue;
         }
       }
@@ -329,20 +420,39 @@ int main(int argc, char **argv) {
     CalculateGlobalStats( nproc, 
                           n_pts_g, n_pts_total, 
                           n_hex_g, n_hex_total, 
-                          q_mesh_g, q_mesh_total, 1 );
-    printf( "\n# Global statistics:\n" );
-    printf( "  total number of points: %d\n", n_pts_total );
-    printf( "  total number of hexes:  %d\n", n_hex_total );
-    printf( "  mesh quality (min/mean/max/stdv): %G %G %G %G\n",
-	    q_mesh_total[0], q_mesh_total[1], q_mesh_total[2], 
-            sqrt( q_mesh_total[3] - q_mesh_total[1] * q_mesh_total[1] ) );
+                          q_mesh_g, q_mesh_total, 
+			  1 );
+    cout <<  endl 
+         << "# Global statistics:" 
+         << endl
+         <<  "  total number of points: "
+         << n_pts_total
+         << endl
+         <<  "  total number of hexes: "
+         << n_hex_total
+         << endl
+         <<  "  mesh quality ("
+         << qualityName.c_str()
+         << "):"
+         << " min= "
+         << q_mesh_total[0]
+         << " mean= "
+         << q_mesh_total[1]
+         << " max= "
+         << q_mesh_total[2]
+         << " stdv= "
+         << sqrt( q_mesh_total[3] - q_mesh_total[1] * q_mesh_total[1] )
+         << endl;
     }
   
   MPI_Finalize();
   if ( ! myrank ) 
     {
-    printf( "\n# Done. Exiting PCAMAL.\n" );
-    printf( "===============\n\n" );
+    cout <<  endl 
+	 << "# Done. Exiting PCAMAL." 
+	 << endl
+	 <<  "===============" 
+	 << endl;
     }
 
   return 0;
