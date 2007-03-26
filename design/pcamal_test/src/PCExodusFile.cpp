@@ -329,12 +329,14 @@ void PCExodusFile::read_init()
 
     // read "SweepID" property
   int surf_sweep1_ids[numElemBlks];
+  memset(surf_sweep1_ids, 0, numElemBlks * sizeof(int));
   char *prop_name = "_CU_SweepID1";
   if (error == 0) {
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, 
                               surf_sweep1_ids);
   }
   int surf_sweep2_ids[numElemBlks];
+  memset(surf_sweep2_ids, 0, numElemBlks * sizeof(int));
   prop_name = "_CU_SweepID2";
   if (error == 0) {
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, 
@@ -343,11 +345,13 @@ void PCExodusFile::read_init()
 
     // read "SurfaceType" property
   int surf_types1[numElemBlks];
+  memset(surf_types1, 0, numElemBlks * sizeof(int));
   prop_name = "_CU_SurfaceType1";
   if (error == 0) {
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, surf_types1);
   }
   int surf_types2[numElemBlks];
+  memset(surf_types2, 0, numElemBlks * sizeof(int));
   prop_name = "_CU_SurfaceType2";
   if (error == 0) {
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, surf_types2);
@@ -355,6 +359,7 @@ void PCExodusFile::read_init()
 
     // read number of hexes that will be generated
   int num_hexes[numElemBlks];
+  memset(num_hexes, 0, numElemBlks * sizeof(int));
   prop_name = "_CU_NumberHexes";
   if (error == 0) {
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, num_hexes);
@@ -445,6 +450,8 @@ int PCExodusFile::update_hex_count(int* num_hexes, int* surf_sweep_ids1,
   }
 
     // sum hexes from each source surface
+  std::set<int> vol_set;
+  int id = 0;
   for (i = 0; i < numElemBlks && error == 0; i++) {
     int type1 = surf_types1[i];
     int type2 = surf_types2[i];
@@ -454,9 +461,13 @@ int PCExodusFile::update_hex_count(int* num_hexes, int* surf_sweep_ids1,
           type2 == PCMLSweeper::TMP_SOURCE) {
         error = -1;
       }
+      else if (!vol_set.empty() && 
+               vol_set.find(surf_sweep_ids1[i]) != vol_set.end()) {
+        continue;
+      } 
       else {
-        int  id = surf_sweep_ids1[i] - 1;
-        total_hexes[id] += num_hexes[i];
+        vol_set.insert(surf_sweep_ids1[i]);
+        total_hexes[id++] = num_hexes[i];
       }
     }
     if (type2 == PCMLSweeper::SOURCE ||
@@ -465,9 +476,13 @@ int PCExodusFile::update_hex_count(int* num_hexes, int* surf_sweep_ids1,
           type1 == PCMLSweeper::TMP_SOURCE) {
         error = -1;
       }
+      else if (!vol_set.empty() && 
+               vol_set.find(surf_sweep_ids2[i]) != vol_set.end()) {
+        continue;
+      } 
       else {
-        int  id = surf_sweep_ids2[i] - 1;
-        total_hexes[id] += num_hexes[i];
+        vol_set.insert(surf_sweep_ids2[i]);
+        total_hexes[id++] = num_hexes[i];
       }
     }
   }
