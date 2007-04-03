@@ -15,15 +15,19 @@ string qualityName;
 
 void WriteLocalExodusMesh( int num_points_out, int num_hexes, 
                            double* x_coor, double* y_coor, double* z_coor, 
-			   int* connect, int sweep_id, char* fileout ) {
+			   int* connect, int sweep_id, char* fileout,
+                           int verbose ) {
   // Write local Exodus II output file
-  cout << "Writing Exodus II mesh " 
-       << sweep_id 
-       << " with " 
-       << num_points_out 
-       << " points and " 
-       << num_hexes 
-       << " hexes." << endl;
+  if ( verbose )
+    {
+    cout << "Writing Exodus II mesh " 
+         << sweep_id 
+         << " with " 
+         << num_points_out 
+         << " points and " 
+         << num_hexes 
+         << " hexes." << endl;
+    }
 
   char filename[strlen( fileout ) + 10];
   sprintf( filename, "%s.vol%03d.g", fileout, sweep_id );
@@ -39,7 +43,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 			      char* fileout, 
 			      int& num_points_out, int& num_hexes,
                               double* q_mesh, int qualityIndex, 
-			      bool verbose ) {
+			      int verbose ) {
   // Read sweep subdomain parameters
   int sweep_id, num_quads;
   pc_input->read_sweep_prop(vol_id, sweep_id, num_quads);
@@ -54,7 +58,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   int* node_ids  = NULL;
   pc_input->read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
                              node_ids);
-  if ( verbose )
+  if ( verbose > 1 )
     {
     cout <<  "\n			 ---Coordinates---" << endl;
     cout <<  "  node	   x		y	     z" << endl;
@@ -74,46 +78,52 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   int num_src_surf, num_lnk_surf, num_tgt_surf;
   int num_surfs = pc_input->read_sweep_surf_prop(vol_id, num_src_surf, 
                                                  num_lnk_surf, num_tgt_surf);
-  cout <<  endl 
-       << "Surface information for subdomain " 
-       << vol_id
-       << ":"
-       << endl
-       <<  "  number sources = "
-       << num_src_surf
-       << endl
-       <<  "  number linking = "
-       << num_lnk_surf
-       << endl
-       <<  "  number targets = "
-       << num_tgt_surf
-       << endl
-       <<  "	   total = " 
-       << num_surfs
-       << endl;
+  if ( verbose )
+    {
+    cout <<  endl 
+         << "Surface information for subdomain " 
+         << vol_id
+         << ":"
+         << endl
+         <<  "  number sources = "
+         << num_src_surf
+         << endl
+         <<  "  number linking = "
+         << num_lnk_surf
+         << endl
+         <<  "  number targets = "
+         << num_tgt_surf
+         << endl
+         <<  "	   total = " 
+         << num_surfs
+         << endl;
+    }
   
   int num_surf_quads[num_surfs];
   pc_input->read_sweep_surf_size( vol_id, num_surfs, num_surf_quads );
   int num_tgt_quads = 0;
   for ( int i = 0; i < num_src_surf; ++i ) num_tgt_quads += num_surf_quads[i];
-  cout <<  endl 
-       << "Number of quads/surface for subdomain "
-       << vol_id 
-       << endl
-       <<  "Surface  Quads" 
-       << endl;
-  for ( int i = 0; i < num_surfs; ++i ) 
+  if ( verbose )
     {
+    cout <<  endl 
+         << "Number of quads/surface for subdomain "
+         << vol_id 
+         << endl
+         <<  "Surface  Quads" 
+         << endl;
+    for ( int i = 0; i < num_surfs; ++i ) 
+      {
       cout << " "
 	   << i+1
 	   << ": "
 	   << num_surf_quads[i]
 	   << endl;
+      }
     }
   
   int connect[num_quads * 4];
   pc_input->read_sweep_conn( vol_id, num_points, num_quads, node_ids, connect );
-  if ( verbose ) 
+  if ( verbose > 1 ) 
     {
     cout <<  endl 
 	 << "		  ---Connectivity---" 
@@ -168,25 +178,29 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   q_mesh[2] = hmq.getMaxQuality();
   q_mesh[3] = hmq.getMom2Quality();
 
-  cout <<  "Mesh quality ("
-       << qualityName.c_str()
-       << ") of subdomain "
-       << vol_id
-       << ":"
-       << " min= "
-       << q_mesh[0]
-       << " mean= "
-       << q_mesh[1]
-       << " max= "
-       << q_mesh[2]
-       << " stdv= "
-       << sqrt( q_mesh[3] - q_mesh[1] * q_mesh[1] )
-       << endl;
+    if ( verbose > 1 )
+    {
+    cout <<  "Mesh quality ("
+         << qualityName.c_str()
+         << ") of subdomain "
+         << vol_id
+         << ":"
+         << " min= "
+         << q_mesh[0]
+         << " mean= "
+         << q_mesh[1]
+         << " max= "
+         << q_mesh[2]
+         << " stdv= "
+         << sqrt( q_mesh[3] - q_mesh[1] * q_mesh[1] )
+         << endl;
+    }
 
   // Write mesh
   WriteLocalExodusMesh( num_points_out, num_hexes, 
 			x_coor_m, y_coor_m, z_coor_m,
-			connect_m, sweep_id, fileout );
+			connect_m, sweep_id, fileout,
+                        verbose );
   return 1;
 }
 
@@ -295,7 +309,7 @@ int main(int argc, char **argv) {
   int myrank, nproc, nsub, nmesh;
   char filein[50];
   char fileout[50];
-  bool verbose = false;
+  bool verbose = 0;
 
   if ( argc < 4 ) 
     {
@@ -327,7 +341,7 @@ int main(int argc, char **argv) {
 	 << endl;
     }
   
-  if ( BalanceLoad( myrank, nsub, nproc, proc_assign, 1 ) ) return 1;
+  if ( BalanceLoad( myrank, nsub, nproc, proc_assign, 0 ) ) return 1;
 
   if ( ! myrank ) 
     {
@@ -367,14 +381,17 @@ int main(int argc, char **argv) {
     {
     if ( myrank == proc_assign[vol_id] ) 
       {
-      cout <<  "========"
-           << endl
-           << "Process "
-           << myrank
-           << " to handle subdomain "
-           <<  vol_id
-           << "."
-           << endl;
+      if ( verbose )
+        {
+        cout <<  "========"
+             << endl
+             << "Process "
+             << myrank
+             << " to handle subdomain "
+             <<  vol_id
+             << "."
+             << endl;
+        }
       int num_points_out, num_hexes;
       double q_mesh[4];
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
