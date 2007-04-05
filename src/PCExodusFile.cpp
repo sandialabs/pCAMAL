@@ -88,13 +88,27 @@ void PCExodusFile::read_sweep_coord(int vol_id, int& num_points,
   }
   
     // retrieve all nodes
-  double xx[numNodes];
-  double yy[numNodes];
-  double zz[numNodes];
+  double* xx = new double[numNodes];
+  double* yy = new double[numNodes];
+  double* zz = new double[numNodes];
+  if (xx == NULL || yy == NULL || zz == NULL) {
+    delete [] zz;
+    delete [] yy;
+    delete [] xx;
+    return;
+  }
+  
   int error = ex_get_coord(exoID, xx, yy, zz);      
 
     // copy only coordinates in element blocks
-  int mark[numNodes];
+  int* mark = new int[numNodes];
+  if (mark == NULL) {
+    delete [] mark;
+    delete [] zz;
+    delete [] yy;
+    delete [] xx;
+    return;
+  }
   if (error == 0) {
       // get element blocks
     PCSweepVolume* vol = sweepVols[vol_id];
@@ -132,18 +146,32 @@ void PCExodusFile::read_sweep_coord(int vol_id, int& num_points,
     y_coor = new double[num_points];
     z_coor = new double[num_points];
     node_ids = new int[num_points];
-    
-    int j = 0;
-    for (i = 0; i < numNodes; i++) {
-      if (mark[i] > 0) {
-        x_coor[j] = xx[i];
-        y_coor[j] = yy[i];
-        z_coor[j] = zz[i];
-        node_ids[j++] = i + 1;
+    if (x_coor == NULL || y_coor == NULL || z_coor == NULL || 
+        node_ids == NULL) {
+      delete [] node_ids;
+      delete [] z_coor;
+      delete [] y_coor;
+      delete [] x_coor;
+    }
+
+    else {
+      int j = 0;
+      for (i = 0; i < numNodes; i++) {
+        if (mark[i] > 0) {
+          x_coor[j] = xx[i];
+          y_coor[j] = yy[i];
+          z_coor[j] = zz[i];
+          node_ids[j++] = i + 1;
 //         printf("%d:%d %f %f %f\n", j, node_ids[j], xx[i], yy[i], zz[i]);
+        }
       }
     }
   }
+
+  delete [] mark;
+  delete [] zz;
+  delete [] yy;
+  delete [] xx;
 }
 
 void PCExodusFile::read_sweep_conn(int vol_id, int num_points, int num_quads,
@@ -301,12 +329,18 @@ int PCExodusFile::put_hex_blk(int num_hexes, int *hexes)
   
     // write element attributes
   if (error == 0) {
-    double attrib[numElems * num_attr];
-    int i;
-    for (i = 0; i < numElems * num_attr; i++) {
-      attrib[i] = 1.0;
+    double* attrib = new double[numElems * num_attr];
+    if (attrib == NULL) {
+      error = 1;
     }
-    error = ex_put_elem_attr(exoID, blk_id, attrib);
+    else {
+      int i;
+      for (i = 0; i < numElems * num_attr; i++) {
+        attrib[i] = 1.0;
+      }
+      error = ex_put_elem_attr(exoID, blk_id, attrib);
+      delete [] attrib;
+    }
   }
   return error;
 }
@@ -385,6 +419,11 @@ void PCExodusFile::read_init()
     // update quad count (source, linking, target) for each sweep volume
   if (error == 0)
     error = update_quad_count();
+
+  if (error != 0) {
+    delete_sweep_volumes();
+    numElemBlks = 0;
+  }
 }
 
 int PCExodusFile::convert_sweep_data(int* eb_ids, 
@@ -488,9 +527,13 @@ int PCExodusFile::update_hex_count(int* num_hexes, int* surf_sweep_ids1,
   }
 
     // update number of hexes in each volume
-  for (i = 0; i < num_vols && error == 0; i++) {
-    sweepVols[i]->put_num_hexes(total_hexes[i]);
-  }
+//   int total = 0;
+//   for (i = 0; i < num_vols && error == 0; i++) {
+//     sweepVols[i]->put_num_hexes(total_hexes[i]);
+//     total += total_hexes[i];
+//     printf("vol %3d: %8d\n", i+1, total_hexes[i]);
+//   }
+//   printf("total hexes = %d\n", total);
   
   return error;
 }
