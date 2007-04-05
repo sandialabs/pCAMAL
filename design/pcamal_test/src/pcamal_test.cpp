@@ -14,6 +14,8 @@ void convert_conn(int num_hexes, int* connect);
 
 int main(int argc, char **argv)
 {
+  bool debug_flag = false;
+  
     // parse command line arguments
   char cmd;
   char *filein  = NULL;
@@ -92,10 +94,9 @@ int main(int argc, char **argv)
     pc_input.read_sweep_prop(vol_id, sweep_id, num_quads);
     if (sweep_id == 0)
       continue;
-    if (verbose) {
-      printf("\nSweeping Volume %d (Cubit Volume %d): est. %d hexes\n",
-             vol_id, sweep_id, num_vol_hexes[vol_id]);
-    }
+//     if (verbose) {
+      printf("Sweeping Volume %d (Cubit Volume %d)\n", vol_id, sweep_id);
+//     }
     
       // read coordinates (memory allocated in read_sweep_coord)
     int num_points;
@@ -105,7 +106,7 @@ int main(int argc, char **argv)
     int* node_ids  = NULL;
     pc_input.read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
                               node_ids);
-    if (verbose) {
+    if (debug_flag) {
       printf("\n                  ---Coordinates---\n");
       printf("  node        x            y            z\n");
       int i;
@@ -143,7 +144,7 @@ int main(int argc, char **argv)
 
     int *connect = new int[num_quads * 4];
     pc_input.read_sweep_conn(vol_id, num_points, num_quads, node_ids, connect);
-    if (verbose) {
+    if (debug_flag) {
       printf("\n           ---Connectivity---\n");
       printf("  Quad     n1        n2        n3        n4\n");
       int *c = connect;
@@ -155,7 +156,9 @@ int main(int argc, char **argv)
     }  
 
       // setup sweeper
+    int msg_level = verbose ? 1 : 0;
     PCMLSweeper sweeper;
+    sweeper.set_msg_level(msg_level);
     sweeper.set_boundary_mesh(num_points, x_coor, y_coor, z_coor,
                               num_quads, connect,
                               num_src_surf, num_surf_quads, num_tgt_quads);
@@ -199,6 +202,8 @@ int main(int argc, char **argv)
     delete [] z_coor;
     delete [] y_coor;
     delete [] x_coor;
+
+    printf("\n");
   } // endfor each element block
 
     // clean-up
