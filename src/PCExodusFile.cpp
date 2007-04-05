@@ -528,11 +528,11 @@ int PCExodusFile::update_hex_count(int* num_hexes, int* surf_sweep_ids1,
 
     // update number of hexes in each volume
 //   int total = 0;
-//   for (i = 0; i < num_vols && error == 0; i++) {
-//     sweepVols[i]->put_num_hexes(total_hexes[i]);
+  for (i = 0; i < num_vols && error == 0; i++) {
+    sweepVols[i]->put_num_hexes(total_hexes[i]);
 //     total += total_hexes[i];
 //     printf("vol %3d: %8d\n", i+1, total_hexes[i]);
-//   }
+  }
 //   printf("total hexes = %d\n", total);
   
   return error;
