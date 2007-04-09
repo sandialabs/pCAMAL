@@ -310,6 +310,7 @@ int main(int argc, char **argv) {
   char filein[50];
   char fileout[50];
   bool verbose = 0;
+  time_t t0, t1;
 
   if ( argc < 4 ) 
     {
@@ -320,6 +321,9 @@ int main(int argc, char **argv) {
   nsub = atoi( argv[1] );
   strcpy( filein, argv[2] );
   strcpy( fileout, argv[3] );
+
+  // Start clock
+  time ( &t0 );
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
@@ -463,10 +467,16 @@ int main(int argc, char **argv) {
     }
   
   MPI_Finalize();
+
+  // End clock
+  time ( &t1 );
+
   if ( ! myrank ) 
     {
     cout <<  endl 
-	 << "# Done. Exiting PCAMAL." 
+	 << "# Done (walltime = " 
+	 << difftime( t1, t0 )
+	 << " sec). Exiting PCAMAL." 
 	 << endl
 	 <<  "===============" 
 	 << endl;
