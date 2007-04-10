@@ -150,6 +150,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 
   // Setup CAMAL hex sweeper
   PCMLSweeper sweeper;
+  sweeper.set_msg_level( verbose ? 1 : 0 );  
   sweeper.set_boundary_mesh( num_points, x_coor, y_coor, z_coor,
 			     num_quads, connect,
 			     num_src_surf, num_surf_quads, num_tgt_quads );
