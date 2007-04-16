@@ -203,7 +203,8 @@ int main(int argc, char **argv)
     delete [] y_coor;
     delete [] x_coor;
 
-    printf("\n");
+    if (verbose)
+      printf("\n");
   } // endfor each element block
 
     // clean-up
