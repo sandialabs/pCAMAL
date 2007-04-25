@@ -392,11 +392,22 @@ void PCExodusFile::read_init()
   }
 
     // read number of hexes that will be generated
-  int num_hexes[numElemBlks];
-  memset(num_hexes, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_NumberHexes";
+  int num_hexes1[numElemBlks];
+  memset(num_hexes1, 0, numElemBlks * sizeof(int));
+  int num_hexes2[numElemBlks];
+  memset(num_hexes2, 0, numElemBlks * sizeof(int));
+  prop_name = "_CU_NumberHexes1";
   if (error == 0) {
-    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, num_hexes);
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, num_hexes1);
+  }
+  if (error == 0) {
+    prop_name = "_CU_NumberHexes2";
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, num_hexes2);
+  }
+    // try old format if hexes not found
+  else {
+    prop_name = "_CU_NumberHexes";
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, num_hexes1);    
   }
 
     // generate sweep volumes for all SweepIDs
@@ -404,17 +415,12 @@ void PCExodusFile::read_init()
   if (error == 0) {
     delete_sweep_volumes();
     error = convert_sweep_data(eb_ids, surf_sweep1_ids, surf_types1, 
-                               sweep_map);
+                               num_hexes1, sweep_map);
   }
   if (error == 0) {
     error = convert_sweep_data(eb_ids, surf_sweep2_ids, surf_types2, 
-                               sweep_map);
+                               num_hexes2, sweep_map);
   }
-
-    // update hex count for each sweep volume
-  if (error == 0)
-    error = update_hex_count(num_hexes, surf_sweep1_ids, surf_types1,
-                             surf_sweep2_ids, surf_types2);
 
     // update quad count (source, linking, target) for each sweep volume
   if (error == 0)
@@ -426,8 +432,8 @@ void PCExodusFile::read_init()
   }
 }
 
-int PCExodusFile::convert_sweep_data(int* eb_ids, 
-                                     int* surf_sweep_ids, int* surf_types,
+int PCExodusFile::convert_sweep_data(int* eb_ids, int* surf_sweep_ids, 
+                                     int* surf_types, int* num_hexes,
                                      std::map<int, PCSweepVolume*>& sweep_map)
 {
   PCSweepVolume* vol = NULL;
@@ -454,6 +460,7 @@ int PCExodusFile::convert_sweep_data(int* eb_ids,
       case PCMLSweeper::SOURCE:
       case PCMLSweeper::TMP_SOURCE:
           vol->add_source_id(eb_ids[i]);
+          vol->add_num_hexes(num_hexes[i]);
           break;
       case PCMLSweeper::LINKING:
       case PCMLSweeper::TMP_LINKING:
@@ -468,74 +475,6 @@ int PCExodusFile::convert_sweep_data(int* eb_ids,
     }
   }
   return 0;
-}
-
-int PCExodusFile::update_hex_count(int* num_hexes, int* surf_sweep_ids1,
-                                   int* surf_types1, int* surf_sweep_ids2,
-                                   int* surf_types2)
-{
-    // nothing to update
-  if (sweepVols.empty())
-    return -1;
-
-    // initialize array for summation
-  int num_vols = sweepVols.size();
-  int total_hexes[num_vols];
-  int error = 0;
-  int i;
-  for (i = 0; i < num_vols; i++) {
-    total_hexes[i] = 0;
-    sweepVols[i]->put_num_hexes(0);
-  }
-
-    // sum hexes from each source surface
-  std::set<int> vol_set;
-  int id = 0;
-  for (i = 0; i < numElemBlks && error == 0; i++) {
-    int type1 = surf_types1[i];
-    int type2 = surf_types2[i];
-    if (type1 == PCMLSweeper::SOURCE ||
-        type1 == PCMLSweeper::TMP_SOURCE) {
-      if (type2 == PCMLSweeper::SOURCE ||
-          type2 == PCMLSweeper::TMP_SOURCE) {
-        error = -1;
-      }
-      else if (!vol_set.empty() && 
-               vol_set.find(surf_sweep_ids1[i]) != vol_set.end()) {
-        continue;
-      } 
-      else {
-        vol_set.insert(surf_sweep_ids1[i]);
-        total_hexes[id++] = num_hexes[i];
-      }
-    }
-    if (type2 == PCMLSweeper::SOURCE ||
-        type2 == PCMLSweeper::TMP_SOURCE) {
-      if (type1 == PCMLSweeper::SOURCE ||
-          type1 == PCMLSweeper::TMP_SOURCE) {
-        error = -1;
-      }
-      else if (!vol_set.empty() && 
-               vol_set.find(surf_sweep_ids2[i]) != vol_set.end()) {
-        continue;
-      } 
-      else {
-        vol_set.insert(surf_sweep_ids2[i]);
-        total_hexes[id++] = num_hexes[i];
-      }
-    }
-  }
-
-    // update number of hexes in each volume
-//   int total = 0;
-  for (i = 0; i < num_vols && error == 0; i++) {
-    sweepVols[i]->put_num_hexes(total_hexes[i]);
-//     total += total_hexes[i];
-//     printf("vol %3d: %8d\n", i+1, total_hexes[i]);
-  }
-//   printf("total hexes = %d\n", total);
-  
-  return error;
 }
 
 int PCExodusFile::update_quad_count()

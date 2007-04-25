@@ -18,7 +18,8 @@ public:
 
   int  get_elem_block_id() {return elemBlockId;}
   void put_elem_block_id(int blk_id) {elemBlockId = blk_id;}
-  
+
+  int  add_num_hexes(int num_hexes) {numHexes += num_hexes;}
   int  get_num_hexes() {return numHexes;}
   void put_num_hexes(int num_hexes) {numHexes = num_hexes;}
   int  get_num_quads();

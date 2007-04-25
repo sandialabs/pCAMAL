@@ -54,13 +54,11 @@ private:
   char mTitle[MAX_LINE_LENGTH+1];
   std::vector<PCSweepVolume*> sweepVols;
 
-  int  convert_sweep_data(int* eb_ids, int* surf_sweep_ids, int* surf_types, 
+  int  convert_sweep_data(int* eb_ids, int* surf_sweep_ids, 
+                          int* surf_types, int* num_hexes,
                           std::map<int, PCSweepVolume*>& sweep_map);
   void delete_sweep_volumes();
   void read_init();
-  int  update_hex_count(int* num_hexes, int* surf_sweep_ids1, 
-                        int* surf_types1, int* surf_sweep_ids2,
-                        int* surf_types2);
   int  update_quad_count();
 };
 
