@@ -2,6 +2,7 @@
 // it reads a Exodus II file with pCAMAL object properties and generates
 // a swept mesh for each element block in the file
 
+#include <map>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +79,8 @@ int main(int argc, char **argv)
 
     // open input file
   PCExodusFile pc_input(filein, pce::read);
-  int num_blks = pc_input.get_num_sweep_vols();
+  int num_blks, num_node_sets, num_side_sets;
+  pc_input.get_param(num_blks, num_node_sets, num_side_sets);
   if (num_blks == 0) {
     printf("Error opening/reading input file\n");
     exit(-1);
@@ -90,13 +92,15 @@ int main(int argc, char **argv)
   int vol_id;
   for (vol_id = 0; vol_id < num_blks; vol_id++) {
       // read sweep block control
-    int sweep_id, num_quads;
-    pc_input.read_sweep_prop(vol_id, sweep_id, num_quads);
-    if (sweep_id == 0)
+    int block_id, sweep_id, num_quads;
+    int nodes_per_hex;
+    pc_input.read_sweep_prop(vol_id, block_id, sweep_id, num_quads,
+                             nodes_per_hex);
+    if (sweep_id == 0) {
+        // copy the non-pCAMAL block to an output file
       continue;
-//     if (verbose) {
-      printf("Sweeping Volume %d (Cubit Volume %d)\n", vol_id, sweep_id);
-//     }
+    }
+    printf("Sweeping pCAMAL block %d (Cubit Volume %d)\n", vol_id, sweep_id);
     
       // read coordinates (memory allocated in read_sweep_coord)
     int num_points;
@@ -164,7 +168,6 @@ int main(int argc, char **argv)
                               num_src_surf, num_surf_quads, num_tgt_quads);
     delete [] num_surf_quads;
     delete [] connect;
-    delete [] node_ids;
     delete [] z_coor;
     delete [] y_coor;
     delete [] x_coor;
@@ -184,18 +187,58 @@ int main(int argc, char **argv)
     sweeper.get_mesh(num_points_out, x_coor, y_coor, z_coor,
                      num_hexes, connect);
 
+    int new_node_sets = 0;
+    int ns_len = 0;
+    int ns_df_len = 0;
+    int ns_id_array[num_node_sets];
+    int ns_cnts_array[num_node_sets];
+    int ns_df_cnts_array[num_node_sets];
+    int ns_ptrs[num_node_sets];
+    int ns_df_ptrs[num_node_sets];
+    int* ns_list       = NULL;
+    double* ns_df_list = NULL;
+    if (num_node_sets > 0) {
+      new_node_sets = num_node_sets;
+      if (!pc_input.get_node_sets(num_points, node_ids, new_node_sets, 
+                                  ns_id_array, ns_cnts_array,
+                                  ns_df_cnts_array, ns_ptrs, ns_df_ptrs,
+                                  ns_list, ns_df_list)) {
+        printf("ERROR: failed to write node sets!\n");
+      }
+    }
+    delete [] node_ids;
+    
       // write Exodus II output file for mesh
     nlen = strlen(fileout);
     char *filename = new char[nlen + 10];
     sprintf(filename, "%s.vol%03d.g", fileout, sweep_id);
     PCExodusFile exo_out(filename, pce::create);
-    exo_out.put_param(num_points_out, num_hexes);
-    exo_out.put_coor(num_points_out, x_coor, y_coor, z_coor);
+    exo_out.put_param(num_points_out, num_hexes, new_node_sets, num_side_sets);
 
+      // read/write modified node sets
+    if (new_node_sets > 0) {
+      if (debug_flag)
+        exo_out.print_node_sets_coords(ns_id_array, ns_cnts_array, ns_ptrs,
+                                       ns_list, x_coor, y_coor, z_coor);
+      
+      exo_out.put_node_sets(ns_id_array, ns_cnts_array, ns_df_cnts_array, 
+                            ns_ptrs, ns_df_ptrs, ns_list, ns_df_list);
+    }
+    delete [] ns_list;
+    delete [] ns_df_list;
+    
+      // read/write modified side sets
+    int new_side_sets = num_side_sets;
+    
       // convert connectivity to exodus (PATRAN) order
     convert_conn(num_hexes, connect);
-    exo_out.put_hex_blk(num_hexes, connect);
-    
+
+      // output connectivity
+    exo_out.put_hex_blk(block_id, nodes_per_hex, num_hexes, connect);
+
+      // output coordinates to exodus
+    exo_out.put_coor(num_points_out, x_coor, y_coor, z_coor);
+
       // delete memory
     delete [] filename;
     delete [] connect;
@@ -227,3 +270,24 @@ void convert_conn(int num_hexes, int* connect)
     c += 8;
   }
 }
+
+void add_high_order_nodes(int num_hexes, int* &connect, int nodes_per_hex)
+{
+  int* new_conn = new int[num_hexes * nodes_per_hex];
+  int c = 0;
+  int n = 0;
+  int i, j;
+  for (i = 0; i < num_hexes; i++) {
+    for (j = 0; j < 8; j++) {
+      new_conn[n++] = connect[c++];
+    }
+
+      // this is a test (need real node numbers)
+    for (j = 8; j < nodes_per_hex; j++) {
+      new_conn[n++] = -1;
+    }
+  }
+  delete [] connect;
+  connect = new_conn;
+}
+
