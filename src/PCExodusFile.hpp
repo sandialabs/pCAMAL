@@ -25,7 +25,14 @@ public:
   
   int  get_num_sweep_vols();
   int  get_num_hexes(int num_blks, int* num_hexes);
-  void read_sweep_prop(int vol_id, int &sweep_id, int &num_quads);
+  void get_param(int& num_blks, int& num_node_sets, int& num_side_sets);
+  bool get_node_sets(int num_points, int* node_ids, int& new_node_sets, 
+                     int* ns_id_array, int* ns_cnts_array,
+                     int* ns_df_cnts_array, int* ns_ptrs, int* ns_df_ptrs,
+                     int* &ns_list, double* &ns_df_list);
+
+  void read_sweep_prop(int vol_id, int &block_id, int &sweep_id, 
+                       int &num_quads, int& nodes_per_hex);
   void read_sweep_coord(int vol_id, int& num_points, 
                         double* &x_coor, double* &y_coor, 
                         double* &z_coor, int* &node_ids);
@@ -35,10 +42,19 @@ public:
                             int &num_tgt_surf);
   void read_sweep_surf_size(int vol_id, int num_surfs, int *num_surf_quads);
 
-  int  put_param(int num_points_out, int num_hexes);
+  int  put_param(int num_points_out, int num_hexes, 
+                 int num_node_sets, int num_side_sets);
   int  put_coor(int num_points_out, double *x_coor, 
                 double *y_coor, double *z_coor);
-  int  put_hex_blk(int num_hexes, int *hexes);
+  int  put_hex_blk(int block_id, int num_nodes_elem, 
+                   int num_hexes, int *hexes);
+  int  put_node_sets(int* node_id_array, int* ns_cnts_array, 
+                     int* ns_df_cnts_array, int* ns_ptrs, int* ns_df_ptrs, 
+                     int* ns_list, double* ns_df_list);
+
+  void print_node_sets_coords(int* ns_id_array, int* ns_cnts_array,
+                              int* ns_ptrs, int* ns_list,
+                              double* xx, double* yy, double* zz);
 
 private:
   int exoID;
@@ -51,13 +67,18 @@ private:
   int numNodeSets;
   int numSideSets;
   float mVersion;
+  char fileName[MAX_STR_LENGTH+1];
   char mTitle[MAX_LINE_LENGTH+1];
   std::vector<PCSweepVolume*> sweepVols;
 
-  int  convert_sweep_data(int* eb_ids, int* surf_sweep_ids, 
-                          int* surf_types, int* num_hexes,
+  int  convert_sweep_data(int* eb_ids, int* block_ids, int* surf_sweep_ids, 
+                          int* surf_types, int* num_hexes, int* nodes_per_hex,
                           std::map<int, PCSweepVolume*>& sweep_map);
   void delete_sweep_volumes();
+  void print_concat_node_sets(int* ns_id_array, int* ns_cnts_array, 
+                              int* ns_df_cnts_array, int* ns_ptrs, 
+                              int* ns_df_ptrs, int* ns_list, 
+                              double* ns_df_list);
   void read_init();
   int  update_quad_count();
 };

@@ -13,10 +13,29 @@ using namespace std;
 
 string qualityName; 
 
-void WriteLocalExodusMesh( int num_points_out, int num_hexes, 
+void ConvertToPatranOrder(int num_hexes, int* connect)
+{
+  int tmp;
+  int *c = connect;
+  int i;
+  for (i = 0; i < num_hexes; i++) {
+    tmp  = c[2];
+    c[2] = c[5];
+    c[5] = tmp;
+    tmp  = c[3];
+    c[3] = c[4];
+    c[4] = tmp;
+    c += 8;
+  }
+}
+
+void WriteLocalExodusMesh( PCExodusFile* pc_input, 
+                           int num_points_in, int* node_ids,
+                           int num_points_out, int num_hexes, 
+                           int num_node_sets, int num_side_sets,
                            double* x_coor, double* y_coor, double* z_coor, 
-			   int* connect, int sweep_id, char* fileout,
-                           int verbose ) {
+                           int* connect, int sweep_id, int blk_id,
+                           int num_nodes_elem, char* fileout, int verbose ) {
   // Write local Exodus II output file
   if ( verbose )
     {
@@ -34,19 +53,56 @@ void WriteLocalExodusMesh( int num_points_out, int num_hexes,
 
 
   PCExodusFile exo_out( filename, pce::create );
-  exo_out.put_param( num_points_out, num_hexes );
+  exo_out.put_param( num_points_out, num_hexes, num_node_sets, num_side_sets );
+
+    // read/write node set if any from input file
+  if (num_node_sets > 0)
+  {
+    int new_node_sets = 0;
+    int ns_len = 0;
+    int ns_df_len = 0;
+    int ns_ids[num_node_sets];
+    int ns_cnts[num_node_sets];
+    int ns_df_cnts[num_node_sets];
+    int ns_ptrs[num_node_sets];
+    int ns_df_ptrs[num_node_sets];
+    int* ns_list       = NULL;
+    double* ns_df_list = NULL;
+    if (num_node_sets > 0)
+    {
+      new_node_sets = num_node_sets;
+      if (pc_input->get_node_sets(num_points_in, node_ids, new_node_sets, 
+                                  ns_ids, ns_cnts, ns_df_cnts, ns_ptrs, 
+                                  ns_df_ptrs, ns_list, ns_df_list))
+      {
+        exo_out.put_node_sets(ns_ids, ns_cnts, ns_df_cnts, ns_ptrs, 
+                              ns_df_ptrs, ns_list, ns_df_list);
+      }
+      else
+      {
+        cout << "## Error: failed to write node sets!" << endl;
+      }
+    }
+    delete [] ns_list;
+    delete [] ns_df_list;
+  }
+  
+    // convert connectivity to exodus (PATRAN) order
+  ConvertToPatranOrder(num_hexes, connect);
+  exo_out.put_hex_blk( blk_id, num_nodes_elem, num_hexes, connect );
   exo_out.put_coor( num_points_out, x_coor, y_coor, z_coor );
-  exo_out.put_hex_blk( num_hexes, connect );
 }
 
 int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id, 
-			      char* fileout, 
-			      int& num_points_out, int& num_hexes,
+                              char* fileout, 
+                              int num_node_sets, int num_side_sets,
+                              int& num_points_out, int& num_hexes,
                               double* q_mesh, int qualityIndex, 
-			      int verbose ) {
+                              int verbose ) {
   // Read sweep subdomain parameters
-  int sweep_id, num_quads;
-  pc_input->read_sweep_prop(vol_id, sweep_id, num_quads);
+  int block_id, sweep_id, num_quads, nodes_per_hex;
+  pc_input->read_sweep_prop(vol_id, block_id, sweep_id, num_quads,
+                            nodes_per_hex);
   if ( ! sweep_id )
     return 0;
   
@@ -146,14 +202,13 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
       c += 4;
       }
     }
-  delete [] node_ids;
 
   // Setup CAMAL hex sweeper
   PCMLSweeper sweeper;
   sweeper.set_msg_level( verbose ? 1 : 0 );  
   sweeper.set_boundary_mesh( num_points, x_coor, y_coor, z_coor,
-			     num_quads, connect,
-			     num_src_surf, num_surf_quads, num_tgt_quads );
+                             num_quads, connect,
+                             num_src_surf, num_surf_quads, num_tgt_quads );
 
 
   // Generate swept hex mesh
@@ -168,12 +223,12 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   double z_coor_m[num_points_out];
   int connect_m[num_hexes * 8];
   sweeper.get_mesh( num_points_out, x_coor_m, y_coor_m, z_coor_m,
-		    num_hexes, connect_m );
+                    num_hexes, connect_m );
 
   // Get mesh quality
   PCHexMeshQuality hmq( x_coor_m, y_coor_m, z_coor_m, 
-			num_hexes, connect_m, 
-			qualityIndex, qualityName );
+                        num_hexes, connect_m, 
+                        qualityIndex, qualityName );
   q_mesh[0] = hmq.getMinQuality();
   q_mesh[1] = hmq.getMeanQuality();
   q_mesh[2] = hmq.getMaxQuality();
@@ -198,10 +253,14 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
     }
 
   // Write mesh
-  WriteLocalExodusMesh( num_points_out, num_hexes, 
-			x_coor_m, y_coor_m, z_coor_m,
-			connect_m, sweep_id, fileout,
-                        verbose );
+  WriteLocalExodusMesh( pc_input, num_points, node_ids, 
+                        num_points_out, num_hexes, 
+                        num_node_sets, num_side_sets,
+                        x_coor_m, y_coor_m, z_coor_m,
+                        connect_m, sweep_id, block_id, nodes_per_hex,
+                        fileout, verbose );
+  delete [] node_ids;
+
   return 1;
 }
 
@@ -357,7 +416,8 @@ int main(int argc, char **argv) {
   
   // Open input file
   PCExodusFile pc_input( filein, pce::read );
-  int num_blks = pc_input.get_num_sweep_vols();
+  int num_blks, num_node_sets, num_side_sets;
+  pc_input.get_param(num_blks, num_node_sets, num_side_sets);
 
   if ( ! myrank ) 
     {
@@ -400,9 +460,10 @@ int main(int argc, char **argv) {
       int num_points_out, num_hexes;
       double q_mesh[4];
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
+                                                num_node_sets, num_side_sets,
                                                 num_points_out, num_hexes,
                                                 q_mesh, PCAMAL_QUALITY_SHAPE,
-						verbose );
+                                                verbose );
 
       // Update local statistics
       // mean & mom2

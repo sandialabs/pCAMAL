@@ -11,7 +11,7 @@ class PCSweepVolume
 {
 public:
   PCSweepVolume() : sweepId(0), numHexes(0), numQuads(0), elemBlockId(0), 
-                    targetId(0)
+                    targetId(0), nodesPerHex(0)
       {}
   virtual ~PCSweepVolume()
       {}
@@ -40,12 +40,16 @@ public:
   void put_target_id(int tid) {targetId = tid;}
   int  get_ordered_ids(std::vector<int>& ids);
 
+  void put_nodes_per_hex(int n) {nodesPerHex = n;}
+  int  get_nodes_per_hex() {return nodesPerHex;}
+
 private:
   int sweepId;
   int numHexes;
   int numQuads;
   int elemBlockId;
   int targetId;
+  int nodesPerHex;
   std::vector<int> sourceIds;
   std::vector<int> linkingIds;
   std::vector<int> numSurfQuads;
