@@ -90,33 +90,72 @@ Side set distribution factors: N/A
 
 Object properties
 -----------------
-for each element block, define the following object properties
+for each pCAMAL element block, define the following object properties
   _CU_SweepID1
   _CU_SweepID2
   _CU_SurfaceType1
   _CU_SurfaceType2
+  _CU_NumberHexes1
+  _CU_NumberHexes2
+  _CU_UserBlockNo1
+  _CU_UserBlockNo2
+  _CU_NodesPerHex1
+  _CU_NodesPerHex2
 
 The _CU_SweepID identifies the element blocks associated with each sweepable
 volume. Blocks in the same sweepable volume will have the same value, e.g.,
-1 or 2.
+1, 2, etc.
 
-The _CU_SurfaceType identifies the element blocks as source (1), linking (2)
-or target (3) elements.
+The _CU_SurfaceType identifies the element blocks as source (1), target (2)
+or linking (3) elements.
 
 The two sweep id and two surface type properties allow for sharing of surfaces
 between sweepable volumes without duplicating elements. Two are sufficient
 since no more than two volumes should share a surface quad.
 
-Name		EB1	EB2	EB3	EB4	EB5	EB6	EB7	EB8
-ID		100	110	120	130	140	200	210	220
-_CU_SweepID1	1	1	1	1	1	2	2	2
-_CU_SweepID2	0	2	2	0	0	0	0	0
-_CU_Surf..Type1	1	2	2	2	3	1	2	3
-_CU_Surf..Type2	0	2	2	0	0	0	0	0
+The _CU_NumHexes gives the number of elements generated from the source
+surface, i.e., the number of source elements times the number of layers from
+that source to the target surface. The second instance gives the value for
+the source surface if it is the source for two volumes with opposite
+sweep directions. The number of hexes is used for load balancing.
 
+The _CU_UserBlockNo gives the block number assigned to this block by the user.
+If the user does not assign block numbers, the default block number (ID) is
+used for this block.
+
+The _CU_NodesPerHex gives the number of nodes per hexahedral element for this
+block. A HEX8 element has 8 nodes per hex while a HEX27 has 27 nodes per hex.
+This property is necessary since the element type for his block is SHEL,
+and the user may desire a particular hexahedral element type other than HEX8.
+
+Again, the second instance of _CU_UserBlockNo and _CU_NodesPerHex are used 
+when the source surface is the source for two volumes swept in opposite
+directions.
+
+Name		 EB1	EB2	EB3	EB4	EB5	EB6	EB7	EB8
+ID		 100	110	120	130	140	200	210	220
+_CU_SweepID1	 1	1	1	1	1	2	2	2
+_CU_SweepID2	 0	2	2	0	0	0	0	0
+_CU_SurfaceType1 1	3	3	3	2	1	3	2
+_CU_SurfaceType2 0	3	3	0	0	0	0	0
+_CU_NumberHexes1 125    0       0       0       0       125     0       0
+_CU_NumberHexes2 0      0       0       0       0       0       0       0
+_CU_UserBlockNo1 100    0       0       0       0       200     0       0
+_CU_UserBlockNo2 0      0       0       0       0       0       0       0
+_CU_NodesPerHex1 8      0       0       0       0       9       0       0
+_CU_NodesPerHex2 0      0       0       0       0       0       0       0
 
 In the example table above, sweepable volume 1 consists of source surface
 (block 100), linking surfaces (blocks 110, 120, 130) and target surface
 (block 140). Sweepable volume 2 is formed from source surface (block 200),
 linking surfaces (blocks 210, 110, 120), and target surface (block 220).
-Linking surfaces (blocks 110, 120) are shared by the two volumes.
+Linking surfaces (blocks 110, 120) are shared by the two volumes. There
+are 125 hexes in each of the volumes. This model shares linking surface
+but not source surfaces so _CU_NumHexes2 is not used.
+
+The user did not assign block numbers so the default values are used for
+_CU_UserBlockNo. If the user had assigned both volume 1 and 2 to block 50,
+then the _CU_UserBlockNo1 for EB1 and EB6 would be 50. The number of nodes per
+hex for the generated hexes will be 8 for block 100 and 9 for block 200.
+The second instance of _CU_UserBlockNo2 and _CU_NodesPerHex2 are not needed
+because the source surfaces are independent.
