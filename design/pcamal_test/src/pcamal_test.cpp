@@ -11,72 +11,30 @@
 #include "PCExodusFile.hpp"
 #include "PCMLSweeper.hpp"
 
-void convert_conn(int num_hexes, int* connect);
+void add_high_order_nodes(int num_hexes, int* &connect, int nodes_per_hex);
+void convert_hex_partran(int num_hexes, int* connect);
+bool generate_filenames(int str_size, char* filein, char* fileout);
+void parse_commands(int argc, char** argv, int str_size, 
+                    char* filein, char* fileout, bool& verbose);
 
 int main(int argc, char **argv)
 {
   bool debug_flag = false;
   
     // parse command line arguments
-  char cmd;
-  char *filein  = NULL;
-  char *fileout = NULL;
+  const int str_size = 128;
+  char filein[str_size];
+  char fileout[str_size];
+  filein[0]  = 0;
+  fileout[0] = 0;
   bool verbose = false;
-  int nlen = 0;
-  while ((cmd = getopt(argc, argv, "hi:o:v")) != EOF) {
-    switch (cmd) {
-        // useage
-      case 'h':
-      default:
-          printf("Useage: pcamal_test [OPTIONS]\n");
-          printf("\t-i <filename>  input file name\n");
-          printf("\t-o <filename>  output file basename\n");
-          printf("\t-v             verbose output\n");
-          printf("\t-h             this help message\n");          
-          exit(-1);
-          
-            // input file name
-      case 'i':
-          nlen = strlen(optarg);
-          filein = new char[nlen+1];
-          strcpy(filein, optarg);
-          break;
-
-            // output file basename
-      case 'o':
-          nlen = strlen(optarg);
-          fileout = new char[nlen+1];
-          strcpy(fileout, optarg);
-          break;
-
-            // verbose output flag
-      case 'v':
-          verbose = true;
-          break;
-    }
-  }
-
+  parse_commands(argc, argv, str_size, filein, fileout, verbose);
+  
     // request input file if none entered as argument
-  if (filein == NULL) {
-    char filename[256];
-    printf("Input filename: ");
-    scanf("%s", filename);
-    nlen = strlen(filename);
-    if (nlen == 0) {
-      printf("Error: No input file entered\n");
-      exit(-1);
-    }
-    filein = new char[nlen+1];
-    strcpy(filein, filename);
-  }
-
-    // generate output file basename if none entered as argument
-  if (fileout == NULL) {
-    nlen = strlen(filein);
-    fileout = new char[nlen];
-    strcpy(fileout, filein);
-  }
-
+  if (filein[0] == 0 || fileout[0] == 0)
+    if (!generate_filenames(str_size, filein, fileout))
+      exit (-1);
+  
     // open input file
   PCExodusFile pc_input(filein, pce::read);
   int num_blks, num_node_sets, num_side_sets;
@@ -110,6 +68,10 @@ int main(int argc, char **argv)
     int* node_ids  = NULL;
     pc_input.read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
                               node_ids);
+    if (num_points == 0) {
+      printf("ERROR: failed to retreive coordinates for volume %d\n", vol_id);
+      exit (-1);
+    }
     if (debug_flag) {
       printf("\n                  ---Coordinates---\n");
       printf("  node        x            y            z\n");
@@ -183,65 +145,86 @@ int main(int argc, char **argv)
     x_coor = new double[num_points_out];
     y_coor = new double[num_points_out];
     z_coor = new double[num_points_out];
-    connect = new int[num_hexes * 8];
+    int* hexes = new int[num_hexes * 8];
     sweeper.get_mesh(num_points_out, x_coor, y_coor, z_coor,
-                     num_hexes, connect);
+                     num_hexes, hexes);
 
-    int new_node_sets = 0;
-    int ns_len = 0;
-    int ns_df_len = 0;
-    int ns_id_array[num_node_sets];
-    int ns_cnts_array[num_node_sets];
-    int ns_df_cnts_array[num_node_sets];
-    int ns_ptrs[num_node_sets];
-    int ns_df_ptrs[num_node_sets];
-    int* ns_list       = NULL;
-    double* ns_df_list = NULL;
+      // convert connectivity to exodus (PATRAN) order
+    convert_hex_partran(num_hexes, hexes);
+
+      // write Exodus II output file for mesh
+    int nlen = strlen(fileout);
+    char *filename = new char[nlen + 10];
+    sprintf(filename, "%s.vol%03d.g", fileout, sweep_id);
+    PCExodusFile exo_out(filename, pce::create);
+    exo_out.put_param(num_points_out, num_hexes, num_node_sets, num_side_sets);
+
+      // read/write modified node sets
     if (num_node_sets > 0) {
-      new_node_sets = num_node_sets;
+      int new_node_sets = num_node_sets;
+      int ns_id_array[num_node_sets];
+      int ns_cnts_array[num_node_sets];
+      int ns_df_cnts_array[num_node_sets];
+      int ns_ptrs[num_node_sets];
+      int ns_df_ptrs[num_node_sets];
+      int* ns_list       = NULL;
+      double* ns_df_list = NULL;
       if (!pc_input.get_node_sets(num_points, node_ids, new_node_sets, 
                                   ns_id_array, ns_cnts_array,
                                   ns_df_cnts_array, ns_ptrs, ns_df_ptrs,
                                   ns_list, ns_df_list)) {
         printf("ERROR: failed to write node sets!\n");
       }
+    
+      exo_out.put_node_sets(num_points, node_ids, ns_id_array, ns_cnts_array, 
+                            ns_df_cnts_array, ns_ptrs, ns_df_ptrs, 
+                            ns_list, ns_df_list);
+      
+      delete [] ns_list;
+      delete [] ns_df_list;
+    }
+    
+      // read/write modified side sets
+    if (num_side_sets > 0) {
+      int new_side_sets = num_side_sets;
+      int ss_id_array[num_side_sets];
+      int ss_cnts_array[num_side_sets];
+      int ss_df_cnts_array[num_side_sets];
+      int ss_ptrs[num_side_sets];
+      int ss_df_ptrs[num_side_sets];
+      int num_el[num_side_sets];
+      int* ss_list;
+      int* ss_side_list;
+      int* ss_conn;
+      double* ss_df_list;
+      if (!pc_input.get_side_sets(vol_id, new_side_sets, num_el,
+                                  ss_conn, ss_id_array, ss_cnts_array,
+                                  ss_df_cnts_array, ss_ptrs, ss_df_ptrs,
+                                  ss_list, ss_side_list, ss_df_list))
+        printf("ERROR: failed to write side sets!\n");
+
+      exo_out.put_side_sets(num_points, node_ids, num_el, ss_conn, 
+                            num_hexes, hexes, 
+                            ss_id_array, ss_cnts_array, 
+                            ss_df_cnts_array, ss_ptrs, ss_df_ptrs, 
+                            ss_list, ss_side_list, ss_df_list);
+
+      delete [] ss_df_list;
+      delete [] ss_conn;
+      delete [] ss_side_list;
+      delete [] ss_list;
     }
     delete [] node_ids;
     
-      // write Exodus II output file for mesh
-    nlen = strlen(fileout);
-    char *filename = new char[nlen + 10];
-    sprintf(filename, "%s.vol%03d.g", fileout, sweep_id);
-    PCExodusFile exo_out(filename, pce::create);
-    exo_out.put_param(num_points_out, num_hexes, new_node_sets, num_side_sets);
-
-      // read/write modified node sets
-    if (new_node_sets > 0) {
-      if (debug_flag)
-        exo_out.print_node_sets_coords(ns_id_array, ns_cnts_array, ns_ptrs,
-                                       ns_list, x_coor, y_coor, z_coor);
-      
-      exo_out.put_node_sets(ns_id_array, ns_cnts_array, ns_df_cnts_array, 
-                            ns_ptrs, ns_df_ptrs, ns_list, ns_df_list);
-    }
-    delete [] ns_list;
-    delete [] ns_df_list;
-    
-      // read/write modified side sets
-    int new_side_sets = num_side_sets;
-    
-      // convert connectivity to exodus (PATRAN) order
-    convert_conn(num_hexes, connect);
-
       // output connectivity
-    exo_out.put_hex_blk(block_id, nodes_per_hex, num_hexes, connect);
+    exo_out.put_hex_blk(block_id, nodes_per_hex, num_hexes, hexes);
 
       // output coordinates to exodus
     exo_out.put_coor(num_points_out, x_coor, y_coor, z_coor);
 
       // delete memory
     delete [] filename;
-    delete [] connect;
+    delete [] hexes;
     delete [] z_coor;
     delete [] y_coor;
     delete [] x_coor;
@@ -249,16 +232,77 @@ int main(int argc, char **argv)
     if (verbose)
       printf("\n");
   } // endfor each element block
-
-    // clean-up
-  delete [] filein;
-  delete [] fileout;
 }
 
-void convert_conn(int num_hexes, int* connect)
+void parse_commands(int argc, char** argv, int str_size, 
+                    char* filein, char* fileout, bool& verbose)
+{
+  char cmd;
+  int nlen = 0;
+  while ((cmd = getopt(argc, argv, "hi:o:v")) != EOF) {
+    switch (cmd) {
+        // useage
+      case 'h':
+      default:
+          printf("Useage: pcamal_test [OPTIONS]\n");
+          printf("\t-i <filename>  input file name\n");
+          printf("\t-o <filename>  output file basename\n");
+          printf("\t-v             verbose output\n");
+          printf("\t-h             this help message\n");          
+          exit(-1);
+          
+            // input file name
+      case 'i':
+          nlen = strlen(optarg);
+          strncpy(filein, optarg, str_size);
+          if (nlen >= str_size)
+            filein[str_size-1] = 0;
+          break;
+
+            // output file basename
+      case 'o':
+          nlen = strlen(optarg);
+          strncpy(fileout, optarg, str_size);
+          if (nlen >= str_size)
+            fileout[str_size-1] = 0;
+          break;
+
+            // verbose output flag
+      case 'v':
+          verbose = true;
+          break;
+    }
+  }
+}
+
+bool generate_filenames(int str_size, char* filein, char* fileout)
+{
+  int nlen;
+  if (filein[0] == 0) {
+    char filename[256];
+    printf("Input filename: ");
+    scanf("%s", filename);
+    nlen = strlen(filename);
+    if (nlen == 0) {
+      printf("Error: No input file entered\n");
+      return false;
+    }
+    strncpy(filein, filename, str_size);
+    if (nlen >= str_size)
+      filein[str_size-1] = 0;
+  }
+
+    // generate output file basename if none entered as argument
+  if (fileout[0] == 0) {
+    strncpy(fileout, filein, str_size);
+  }
+  return true;
+}
+
+void convert_hex_partran(int num_hexes, int* hexes)
 {
   int tmp;
-  int *c = connect;
+  int *c = hexes;
   int i;
   for (i = 0; i < num_hexes; i++) {
     tmp  = c[2];
@@ -271,7 +315,7 @@ void convert_conn(int num_hexes, int* connect)
   }
 }
 
-void add_high_order_nodes(int num_hexes, int* &connect, int nodes_per_hex)
+void add_high_order_nodes(int num_hexes, int* &hexes, int nodes_per_hex)
 {
   int* new_conn = new int[num_hexes * nodes_per_hex];
   int c = 0;
@@ -279,7 +323,7 @@ void add_high_order_nodes(int num_hexes, int* &connect, int nodes_per_hex)
   int i, j;
   for (i = 0; i < num_hexes; i++) {
     for (j = 0; j < 8; j++) {
-      new_conn[n++] = connect[c++];
+      new_conn[n++] = hexes[c++];
     }
 
       // this is a test (need real node numbers)
@@ -287,7 +331,7 @@ void add_high_order_nodes(int num_hexes, int* &connect, int nodes_per_hex)
       new_conn[n++] = -1;
     }
   }
-  delete [] connect;
-  connect = new_conn;
+  delete [] hexes;
+  hexes = new_conn;
 }
 
