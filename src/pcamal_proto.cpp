@@ -29,7 +29,7 @@ void ConvertToPatranOrder(int num_hexes, int* connect)
   }
 }
 
-void WriteLocalExodusMesh( PCExodusFile* pc_input, 
+void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
                            int num_points_in, int* node_ids,
                            int num_points_out, int num_hexes, 
                            int num_node_sets, int num_side_sets,
@@ -55,7 +55,7 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input,
   PCExodusFile exo_out( filename, pce::create );
   exo_out.put_param( num_points_out, num_hexes, num_node_sets, num_side_sets );
 
-    // read/write node set if any from input file
+    // read/modify/write node set if any from input file
   if (num_node_sets > 0)
   {
     int new_node_sets = 0;
@@ -71,12 +71,12 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input,
     if (num_node_sets > 0)
     {
       new_node_sets = num_node_sets;
-      if (pc_input->get_node_sets(num_points_in, node_ids, new_node_sets, 
-                                  ns_ids, ns_cnts, ns_df_cnts, ns_ptrs, 
-                                  ns_df_ptrs, ns_list, ns_df_list))
+      if (pc_input->get_node_sets(new_node_sets, ns_ids, ns_cnts, ns_df_cnts, 
+                                  ns_ptrs, ns_df_ptrs, ns_list, ns_df_list))
       {
-        exo_out.put_node_sets(ns_ids, ns_cnts, ns_df_cnts, ns_ptrs, 
-                              ns_df_ptrs, ns_list, ns_df_list);
+        exo_out.put_node_sets(num_points_in, node_ids, ns_ids, 
+                              ns_cnts, ns_df_cnts, ns_ptrs, ns_df_ptrs, 
+                              ns_list, ns_df_list);
       }
       else
       {
@@ -87,8 +87,40 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input,
     delete [] ns_df_list;
   }
   
-    // convert connectivity to exodus (PATRAN) order
-  ConvertToPatranOrder(num_hexes, connect);
+    // read/modify/write side set if any from input file
+  if (num_side_sets > 0) {
+    int new_side_sets = num_side_sets;
+    int ss_id_array[num_side_sets];
+    int ss_cnts_array[num_side_sets];
+    int ss_df_cnts_array[num_side_sets];
+    int ss_ptrs[num_side_sets];
+    int ss_df_ptrs[num_side_sets];
+    int num_el[num_side_sets];
+    int* ss_list;
+    int* ss_side_list;
+    int* ss_conn;
+    double* ss_df_list;
+    if (pc_input->get_side_sets( vol_id, new_side_sets, num_el,
+                                 ss_conn, ss_id_array, ss_cnts_array,
+                                 ss_df_cnts_array, ss_ptrs, ss_df_ptrs,
+                                 ss_list, ss_side_list, ss_df_list ))
+    {
+      exo_out.put_side_sets( num_points_in, node_ids, num_el, ss_conn, 
+                             num_hexes, connect, 
+                             ss_id_array, ss_cnts_array, 
+                             ss_df_cnts_array, ss_ptrs, ss_df_ptrs, 
+                             ss_list, ss_side_list, ss_df_list );
+    }
+    else
+    {
+      cout << "## Error: failed to write side sets!" << endl;
+    }
+    delete [] ss_df_list;
+    delete [] ss_conn;
+    delete [] ss_side_list;
+    delete [] ss_list;
+  }
+
   exo_out.put_hex_blk( blk_id, num_nodes_elem, num_hexes, connect );
   exo_out.put_coor( num_points_out, x_coor, y_coor, z_coor );
 }
@@ -252,8 +284,11 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
          << endl;
     }
 
+  // convert connectivity to exodus (PATRAN) order
+  ConvertToPatranOrder( num_hexes, connect_m );
+
   // Write mesh
-  WriteLocalExodusMesh( pc_input, num_points, node_ids, 
+  WriteLocalExodusMesh( pc_input, vol_id, num_points, node_ids, 
                         num_points_out, num_hexes, 
                         num_node_sets, num_side_sets,
                         x_coor_m, y_coor_m, z_coor_m,

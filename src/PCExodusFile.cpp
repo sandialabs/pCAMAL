@@ -9,9 +9,9 @@
 #include "PCMLSweeper.hpp"
 
 PCExodusFile::PCExodusFile(char* const file_name, pce::FileOp op)
-        : exoID(0), cpuWord(8), fileWord(0), numDim(0), numNodes(0),
-          numElems(0), numElemBlks(0), numNodeSets(0), numSideSets(0),
-          mVersion(0.0)
+        : zeroBased(true), exoID(0), cpuWord(8), fileWord(0), numDim(0), 
+          numNodes(0), numElems(0), numElemBlks(0), numNodeSets(0), 
+          numSideSets(0), mVersion(0.0)
 {
   switch(op) {
       // open exising file for read only
@@ -103,39 +103,45 @@ void PCExodusFile::read_sweep_prop(int vol_id, int &block_id, int &sweep_id,
   }  
 }
 
-bool PCExodusFile::get_node_sets(int num_points, int* node_ids, 
-                                 int& new_node_sets, int* ns_id_array, 
+bool PCExodusFile::get_node_sets(int& new_node_sets, int* ns_id_array, 
                                  int* ns_cnts_array, int* ns_df_cnts_array, 
                                  int* ns_ptrs, int* ns_df_ptrs,
                                  int* &ns_list, double* &ns_df_list)
 {
   bool debug_flag = false;
   
+    // fail if no file opened or no node sets
   if (exoID == 0 || numNodeSets == 0)
     return false;
 
-    // allocate memory for lists
   int ns_len = 0;
   int ns_df_len = 0;
   float fdum;
   char cdum;
-  int error = ex_inquire(exoID, EX_INQ_NS_NODE_LEN, &ns_len, &fdum, &cdum);
-  if (error == 0) {
-    ns_list = new int[ns_len];
-    if (ns_list == NULL)
-      return false;
 
+    // get size of node set list
+  int error = ex_inquire(exoID, EX_INQ_NS_NODE_LEN, &ns_len, &fdum, &cdum);
+
+    // get size of distribution factors list
+  if (error == 0) {
     error = ex_inquire(exoID, EX_INQ_NS_DF_LEN, &ns_df_len, &fdum, &cdum);
   }
-
-  if (error == 0 && ns_df_len > 0) {
+  
+    // allocate memory for node set and distribution factor lists
+  if (error == 0 && ns_len > 0 && ns_df_len > 0) {
+    ns_list = new int[ns_len];
     ns_df_list = new double[ns_df_len];
-    if (ns_df_list == NULL) {
+
+      // return if memory allocation failed
+    if (ns_list == NULL || ns_df_list == NULL) {
       delete [] ns_list;
+      delete [] ns_df_list;
       ns_list = NULL;
+      ns_df_list = NULL;
       return false;
     }
     
+      // get all node sets (concatenated)
     error = ex_get_concat_node_sets(exoID, ns_id_array, ns_cnts_array,
                                     ns_df_cnts_array, ns_ptrs, ns_df_ptrs,
                                     ns_list, ns_df_list);
@@ -145,69 +151,6 @@ bool PCExodusFile::get_node_sets(int num_points, int* node_ids,
     printf("Before conversion\n");
     print_concat_node_sets(ns_id_array, ns_cnts_array, ns_df_cnts_array,
                            ns_ptrs, ns_df_ptrs, ns_list, ns_df_list);
-
-    double* xx = new double[numNodes];
-    double* yy = new double[numNodes];
-    double* zz = new double[numNodes];
-    if (xx != NULL && yy != NULL && zz != NULL) {
-      if (ex_get_coord(exoID, xx, yy, zz) == 0) {
-        print_node_sets_coords(ns_id_array, ns_cnts_array, ns_ptrs, ns_list,
-                               xx, yy, zz);
-      }
-    }
-    
-    delete [] zz;
-    delete [] yy;
-    delete [] xx;
-  }
-
-  if (error == 0) {
-    int i, j;
-    std::map<int,int> node_map;
-    for (i = 0; i < num_points; i++) {
-      node_map[node_ids[i]] = i + 1;
-    }
-
-      // convert to new node numbers
-    int new_ns_len = 0;
-    for (i = 0; i < numNodeSets; i++) {
-      int begin = ns_ptrs[i];
-      int end = begin + ns_cnts_array[i];
-      for (j = begin; j < end; j++) {
-        if (node_map.find(ns_list[j]) != node_map.end()) {
-          ns_list[new_ns_len] = node_map[ns_list[j]];
-          if (ns_df_len > 0)
-            ns_df_list[new_ns_len] = ns_df_list[j];
-          ++new_ns_len;
-        }
-      }
-      ns_ptrs[i] = new_ns_len;
-    }
-
-    ns_cnts_array[0] = ns_ptrs[0];
-    for (i = 1; i < numNodeSets; i++) {
-      ns_cnts_array[i] = ns_ptrs[i] - ns_ptrs[i-1];
-    }
-    ns_ptrs[0] = 0;
-    for (i = 1; i < numNodeSets; i++) {
-      ns_ptrs[i] = ns_ptrs[i-1] + ns_cnts_array[i];
-    }
-    if (ns_df_len > 0) {
-      for (i = 0; i < numNodeSets; i++) {
-        ns_df_cnts_array[i] = ns_cnts_array[i];
-        ns_df_ptrs[i] = ns_ptrs[i];
-      }
-    }
-  
-    if (debug_flag) {
-      printf("After conversion\n");
-      print_concat_node_sets(ns_id_array, ns_cnts_array, ns_df_cnts_array,
-                             ns_ptrs, ns_df_ptrs, ns_list, ns_df_list);
-    }
-
-    if (new_ns_len == ns_len) {
-      printf("No change to side set\n");
-    }
   }
 
   return error == 0 ? true : false;
@@ -218,6 +161,8 @@ void PCExodusFile::print_concat_node_sets(int* ns_id_array, int* ns_cnts_array,
                                           int* ns_df_ptrs, int* ns_list, 
                                           double* ns_df_list)
 {
+  bool debug_flag = false;
+  
     // header info
   int i, j, k;
   for (i = 0; i < numNodeSets; i++) {
@@ -229,6 +174,7 @@ void PCExodusFile::print_concat_node_sets(int* ns_id_array, int* ns_cnts_array,
     printf("\tindex dist_fact = %d\n", ns_df_ptrs[i]);
   }
 
+    // compute size of lists
   int ns_len = 0;
   int ns_df_len = 0;
   for (i = 0; i < numNodeSets; i++) {
@@ -273,6 +219,23 @@ void PCExodusFile::print_concat_node_sets(int* ns_id_array, int* ns_cnts_array,
       }
     }
   }
+
+    // additional output to compare coordinate positions
+  if (debug_flag) {
+    double* xx = new double[numNodes];
+    double* yy = new double[numNodes];
+    double* zz = new double[numNodes];
+    if (xx != NULL && yy != NULL && zz != NULL) {
+      if (ex_get_coord(exoID, xx, yy, zz) == 0) {
+        print_node_sets_coords(ns_id_array, ns_cnts_array, ns_ptrs, ns_list,
+                               xx, yy, zz);
+      }
+    }
+    
+    delete [] zz;
+    delete [] yy;
+    delete [] xx;
+  }
 }
 
 void PCExodusFile::print_node_sets_coords(int* ns_id_array, int* ns_cnts_array,
@@ -292,12 +255,394 @@ void PCExodusFile::print_node_sets_coords(int* ns_id_array, int* ns_cnts_array,
 }
 
 
+bool PCExodusFile::get_side_sets(int vol_id, int& new_side_sets, int* num_el,
+                                 int* &ss_conn, int* ss_id_array, 
+                                 int* ss_cnts_array, int* ss_df_cnts_array, 
+                                 int* ss_ptrs, int* ss_df_ptrs, int* &ss_list, 
+                                 int* &ss_side_list, double* &ss_df_list)
+{
+  bool debug_flag = false;
+  
+    // fail if no file opened or no side sets
+  if (exoID == 0 || numSideSets == 0)
+    return false;
+
+  int ss_len = 0;
+  int ss_df_len = 0;
+  float fdum;
+  char cdum;
+
+    // get size of side set (and side set side) list
+  int error = ex_inquire(exoID, EX_INQ_SS_ELEM_LEN, &ss_len, &fdum, &cdum);
+
+      // get size of distribution factors list
+  if (error == 0) {
+    error = ex_inquire(exoID, EX_INQ_SS_DF_LEN, &ss_df_len, &fdum, &cdum);
+  }
+
+      // allocate memory for side set list and side set side list
+  if (error == 0 && ss_len > 0 && ss_df_len > 0) {
+    ss_list = new int[ss_len];
+    ss_side_list = new int[ss_len];
+    ss_df_list = new double[ss_df_len];
+
+      // return if memory allocation failed
+    if (ss_list == NULL || ss_side_list == NULL || ss_df_list == NULL) {
+      delete [] ss_list;
+      delete [] ss_side_list;
+      delete [] ss_df_list;
+      ss_list = ss_side_list = NULL;
+      ss_df_list = NULL;
+      return false;
+    }
+    
+      // get all side sets (concatenated)
+    error = ex_get_concat_side_sets(exoID, ss_id_array, ss_cnts_array,
+                                    ss_df_cnts_array, ss_ptrs, ss_df_ptrs,
+                                    ss_list, ss_side_list, ss_df_list);
+  }
+
+  if (debug_flag && error == 0) {
+    printf("Before conversion\n");
+    print_concat_side_sets(ss_id_array, ss_cnts_array, ss_df_cnts_array,
+                           ss_ptrs, ss_df_ptrs, ss_list, ss_side_list,
+                           ss_df_list);
+  }
+
+    // get face connectivity for the side sets
+  if (error == 0) {
+    return convert_side_sets_to_quad_conn(vol_id, ss_cnts_array, ss_ptrs,
+                                          ss_len, ss_list, num_el, ss_conn);
+  }
+  return false;
+}
+
+bool PCExodusFile::convert_side_sets_to_quad_conn(int vol_id, 
+                                                  int* ss_cnts, int* ss_ptrs, 
+                                                  int ss_len, int* ss_list, 
+                                                  int* num_el, int* &ss_conn)
+{
+  int debug_flag = false;
+  
+    // fail in no open file or no element blocks
+  if (exoID == 0 || numElemBlks == 0)
+    return false;
+  
+    // select only those elements in this block
+  int blk_ids[numElemBlks];
+  int error = ex_get_elem_blk_ids(exoID, blk_ids);
+  
+    // get number of elements in each element block
+  int elem_index[numElemBlks+1];
+  memset(elem_index, 0, numElemBlks+1 * sizeof(int));
+  if (error == 0) {
+    int i;
+    for (i = 0; i < numElemBlks && error == 0; i++) {
+      char elem_type[MAX_STR_LENGTH+1];
+      int nodes_per_elem;
+      int num_attr;
+      error = ex_get_elem_block(exoID, blk_ids[i], elem_type, &elem_index[i+1],
+                                &nodes_per_elem, &num_attr);
+    }
+  }
+  
+    // generate running total (or index of where element block starts)
+  if (error == 0) {
+    int i, j;
+    elem_index[0] = 1;
+    for (i = 0; i < numElemBlks; i++) {
+      elem_index[i+1] += elem_index[i];
+    }
+    
+    if (debug_flag) {
+      printf("element index/count\n");
+      for (i = 0; i < numElemBlks; i++) {
+        printf(" %5d", elem_index[i]);
+      }
+      printf("\n");
+    }
+    
+      // count the number of side set elements in each element block
+    int  elem_cnt[numElemBlks];
+    memset(elem_cnt, 0, numElemBlks * sizeof(int));
+    for (i = 0; i < ss_len; i++) {
+      int elem_id = ss_list[i];
+      int blk_id = find_blk(elem_id, elem_index);
+      ++elem_cnt[blk_id];
+    }
+
+    if (debug_flag) {
+      for (i = 0; i < numElemBlks; i++) {
+        printf(" %5d", elem_cnt[i]);
+      }
+      printf("\n");
+    }
+
+      // use a set to identify only the element blocks 
+      // with side set elements in the current sweep volume
+    PCSweepVolume* blk_ptr = sweepVols[vol_id];
+    std::vector<int> ordered_ids;
+    blk_ptr->get_ordered_ids(ordered_ids);
+    std::set<int> surf_ids_set(ordered_ids.begin(), ordered_ids.end());
+    for (i = 0; i < numElemBlks; i++) {
+      if (surf_ids_set.find(blk_ids[i]) == surf_ids_set.end())
+        elem_cnt[i] = 0;
+    }
+    
+    if (debug_flag) {
+      for (i = 0; i < numElemBlks; i++) {
+        printf(" %5d", elem_cnt[i]);
+      }
+      printf("\n");
+    }
+  
+      // get the element connectivity associated with the side sets
+    error = get_local_side_set_conn(ss_cnts, ss_ptrs, ss_len, ss_list, 
+                                    elem_index, elem_cnt,
+                                    blk_ids, num_el, ss_conn);
+  }
+
+  return error == 0 ? true : false;
+}
+
+
+
+void PCExodusFile::print_concat_side_sets(int* ss_id_array, int* ss_cnts_array,
+                                          int* ss_df_cnts_array, int* ss_ptrs,
+                                          int* ss_df_ptrs, int* ss_list, 
+                                          int* ss_side_list,
+                                          double* ss_df_list)
+{
+    // header info
+  int i, j, k;
+  for (i = 0; i < numSideSets; i++) {
+    printf("side set %d\n", i+1);
+    printf("\tside_set id     = %d\n", ss_id_array[i]);
+    printf("\tnum sides       = %d\n", ss_cnts_array[i]);
+    printf("\tnum dist_fact   = %d\n", ss_df_cnts_array[i]);
+    printf("\tindex side_set  = %d\n", ss_ptrs[i]);
+    printf("\tindex dist_fact = %d\n", ss_df_ptrs[i]);
+  }
+
+    // compute size of lists
+  int ss_len = 0;
+  int ss_df_len = 0;
+  for (i = 0; i < numSideSets; i++) {
+    ss_len += ss_cnts_array[i];
+    ss_df_len += ss_df_cnts_array[i];
+  }
+
+    // side set
+  if (ss_len > 0) {
+    for (i = 0; i <numSideSets; i++) {
+      printf("\nside_ss%d\n", i+1);
+      int begin = ss_ptrs[i];
+      int end   = begin + ss_cnts_array[i];
+
+        // elements
+      printf("element list\n");
+      for (j = begin; j < end; j += 10) {
+        printf("%4d:", j+1);
+        for (k = 0; k < 10; k++) {
+          if (j + k < end)
+            printf(" %4d", ss_list[j+k]);
+          else
+            break;
+        }
+        printf("\n");
+      }
+
+        // sides
+      printf("side list\n");
+      for (j = begin; j < end; j += 10) {
+        printf("%4d:", j+1);
+        for (k = 0; k < 10; k++) {
+          if (j + k < end)
+            printf(" %4d", ss_side_list[j+k]);
+          else
+            break;
+        }
+        printf("\n");
+      }
+    }
+  }
+
+    // distribution factors
+  if (ss_df_len > 0) {
+    for (i = 0; i <numSideSets; i++) {
+      printf("\ndist_fact_ss%d\n", i+1);
+      int begin = ss_df_ptrs[i];
+      int end   = begin + ss_df_cnts_array[i];
+      for (j = begin; j < end; j += 5) {
+        printf("%d:", j+1);
+        for (k = 0; k < 5; k++) {
+          if (j + k < end)
+            printf(" %f", ss_df_list[j+k]);
+          else
+            break;
+        }
+        printf("\n");
+      }
+    }
+  }
+}
+
+void PCExodusFile::print_side_sets_conn(int* num_el, int* ss_conn)
+{
+    // print the connectivity of all elements in the side set
+  int num = 1;
+  int* c = ss_conn;
+  int begin = 0;
+  int i;
+  for (i = 0; i < numSideSets; i++) {
+    int end = begin + num_el[i];
+    int j;
+    for (j = begin; j < end; j++) {
+      printf("%5d: %5d %5d %5d %5d\n", num, c[0], c[1], c[2], c[3]);
+      ++num;
+      c += 4;
+    }
+  } 
+}
+
+int  PCExodusFile::get_local_side_set_conn(int* ss_cnts, int* ss_ptrs,
+                                           int ss_len, int* ss_list, 
+                                           int* elem_index, int* elem_cnt,
+                                           int* blk_ids, int* num_el, 
+                                           int* &ss_conn)
+{
+  bool debug_flag = false;
+  int error = 0;
+  int i, j;
+  
+    // get element connectivity for side sets
+    // ignore element blocks that contain no side set elements
+  int* blk_conn[numElemBlks];
+  for (i = 0; i < numElemBlks; i++) {
+    if (elem_cnt[i] == 0) {
+      blk_conn[i] = NULL;
+    }
+    else {
+      int* connect = new int[elem_cnt[i] * 4];
+      error = ex_get_elem_conn(exoID, blk_ids[i], connect);
+      blk_conn[i] = connect;
+    }
+  }
+
+    // remove elements not in this volume using a set
+  std::set<int> side_set_elems;
+  for (i = 0; i < numElemBlks; i++) {
+    if (elem_cnt[i] == 0) 
+      continue;
+    for (j = elem_index[i]; j < elem_index[i+1]; j++) {
+      side_set_elems.insert(j);
+    }
+  }
+
+    // mark elements not in this sweep volume with -1
+  for (i = 0; i < ss_len; i++) {
+    if (side_set_elems.find(ss_list[i]) == side_set_elems.end())
+      ss_list[i] = -1;
+  }
+  if (debug_flag) {
+    printf("\nSide set list before conversion\n");
+    int begin = 0;
+    for (i = 0; i < ss_len; i += 10) {
+      int end = begin + 10;
+      end = end < ss_len ? end : ss_len;
+      printf("%5d:", i+1);
+      for (j = begin; j < end; j++) {
+        printf(" %5d", ss_list[j]);
+      }
+      printf("\n");
+      begin = end;
+    }
+  }
+  
+  
+    // copy side set connectivity to single output array
+  if (error == 0) {
+      // count number of element in side set and allocate memory
+    int num_elems = 0;
+    for (i = 0; i < ss_len; i++) {
+      if (ss_len > 0)
+        ++num_elems;
+    }
+    ss_conn = new int[num_elems * 4];
+    if (ss_conn == NULL) // no memory
+      return false;
+    
+    int kk = 1;
+    int nn = 0;
+    for (i = 0; i < numSideSets; i++) {
+      num_el[i] = 0;
+      int begin = ss_ptrs[i];
+      int end   = begin + ss_cnts[i];
+      for (j = begin; j < end; j++) {
+        if (ss_list[j] > 0) {
+          int elem_id = ss_list[j];
+          int blk_id = find_blk(elem_id, elem_index);
+          elem_id -= elem_index[blk_id];
+          int* conn = blk_conn[blk_id];
+          int* c = &conn[elem_id * 4];
+          int k;
+          for (k = 0; k < 4; k++) {
+            ss_conn[nn++] = c[k];
+          }
+          ss_list[j] = kk++;
+          ++num_el[i];
+        }
+      }
+    }
+  }
+
+  if (debug_flag) {
+    printf("\nSide set list after conversion\n");
+    int begin = 0;
+    for (i = 0; i < ss_len; i++) {
+      if (ss_list[i] > 0) {
+        int elem_id = ss_list[i] - 1;
+        int* c = &ss_conn[elem_id * 4];
+        printf("%5d - %5d: %5d %5d %5d %5d\n", i+1, ss_list[i],
+               c[0], c[1], c[2], c[3]);
+      }
+      else {
+        printf("%5d - %5d\n", i+1, ss_list[i]);
+      }
+    }
+  }
+  
+    // delete connectivity memory
+  for (i = 0; i < numElemBlks; i++) {
+    if (blk_conn[i] != NULL)
+      delete [] blk_conn[i];
+  }
+
+  return error;
+}
+
+int PCExodusFile::find_blk(int elem_id, int* elem_index)
+{
+    // use bisection search of ordered elem_index list
+  int low  = 0;
+  int high = numElemBlks;
+  bool ascnd = elem_index[high] > elem_index[low];
+  while (high - low > 1) {
+    int mid = (high + low) >> 1;
+    if (elem_id >= elem_index[mid] == ascnd)
+      low = mid;
+    else
+      high = mid;
+  }
+  return low;
+}
+
 void PCExodusFile::read_sweep_coord(int vol_id, int& num_points, 
                                     double* &x_coor, double* &y_coor, 
                                     double* &z_coor, int* &node_ids)
 {
+  num_points = 0;
   if (vol_id < 0 || vol_id > sweepVols.size()) {
-    num_points = 0;
     return;
   }
   
@@ -332,22 +677,20 @@ void PCExodusFile::read_sweep_coord(int vol_id, int& num_points,
       // mark all nodes in element blocks
     memset(mark, 0, numNodes * sizeof(int));
     
-    int i;
+    int i, j;
     for (i = 0; i < blk_ids.size() && error == 0; i++) {
       int num_quads = vol->get_num_surf_quads(i);
       int conn[num_quads * 4];
       
       error = ex_get_elem_conn(exoID, blk_ids[i], conn);
       if (error == 0) {
-        int j;
-        for (j = 0; j < num_quads * 4; j++)
+        for (j = 0; j < num_quads * 4; j++) 
           mark[conn[j] - 1] = 1;
       }
     }
   }
     
     // count number of marked nodes
-  num_points = 0;
   if (error == 0) {
     int i;
     for (i = 0; i < numNodes; i++) {
@@ -558,10 +901,7 @@ int PCExodusFile::put_hex_blk(int blk_id, int num_nodes_elem,
   
     // write element connectivity
   if (error == 0) {
-    int i;
-    for (i = 0; i < numElems * num_nodes_elem; i++)
-      hexes[i] += 1; // increment node numbers by 1
-
+    increment_hexes(num_nodes_elem, hexes);
     error = ex_put_elem_conn(exoID, blk_id, hexes);
   }
   
@@ -583,21 +923,281 @@ int PCExodusFile::put_hex_blk(int blk_id, int num_nodes_elem,
   return error;
 }
 
-int  PCExodusFile::put_node_sets(int* node_id_array, int* ns_cnts_array, 
-                                 int* ns_df_cnts_array, int* ns_ptrs, 
-                                 int* ns_df_ptrs, int* ns_list,
-                                 double* ns_df_list)
+void PCExodusFile::increment_hexes(int num_nodes_elem, int* hexes)
 {
+    // convert zero-based to one-based connectivity ids
+  if (zeroBased) {
+    int i;
+    for (i = 0; i < numElems * num_nodes_elem; i++)
+      hexes[i] += 1; // increment node numbers by 1
+  }
+  zeroBased = false;
+}
+
+int PCExodusFile::put_node_sets(int num_points, int* node_ids, 
+                                int* ns_id_array, int* ns_cnts_array, 
+                                int* ns_df_cnts_array, int* ns_ptrs, 
+                                int* ns_df_ptrs, int* ns_list,
+                                double* ns_df_list)
+{
+  bool debug_flag = false;
+  
+    // fail if no file opened or no node sets
   if (exoID == 0 || numNodeSets == 0)
     return 1;
   
-  return ex_put_concat_node_sets(exoID, node_id_array, ns_cnts_array, 
+    // select only those nodes in this block (node_ids)
+  int i, j;
+  std::map<int,int> node_map;
+  for (i = 0; i < num_points; i++) {
+    node_map[node_ids[i]] = i + 1;
+  }
+
+    // compute size of lists
+  int ns_len = 0;
+  int ns_df_len = 0;
+  for (i = 0; i < numNodeSets; i++) {
+    ns_len += ns_cnts_array[i];
+    ns_df_len += ns_df_cnts_array[i];
+  }
+
+    // convert to new node numbers
+  int new_ns_len = 0;
+  for (i = 0; i < numNodeSets; i++) {
+    int begin = ns_ptrs[i];
+    int end = begin + ns_cnts_array[i];
+    for (j = begin; j < end; j++) {
+      if (node_map.find(ns_list[j]) != node_map.end()) {
+        ns_list[new_ns_len] = node_map[ns_list[j]];
+        if (ns_df_len > 0)
+          ns_df_list[new_ns_len] = ns_df_list[j];
+        ++new_ns_len;
+      }
+    }
+    ns_ptrs[i] = new_ns_len;
+  }
+
+    // compute index and count arrays
+  ns_cnts_array[0] = ns_ptrs[0];
+  for (i = 1; i < numNodeSets; i++) {
+    ns_cnts_array[i] = ns_ptrs[i] - ns_ptrs[i-1];
+  }
+  ns_ptrs[0] = 0;
+  for (i = 1; i < numNodeSets; i++) {
+    ns_ptrs[i] = ns_ptrs[i-1] + ns_cnts_array[i];
+  }
+  if (ns_df_len > 0) {
+    for (i = 0; i < numNodeSets; i++) {
+      ns_df_cnts_array[i] = ns_cnts_array[i];
+      ns_df_ptrs[i] = ns_ptrs[i];
+    }
+  }
+  
+  if (debug_flag) {
+    printf("After conversion\n");
+    print_concat_node_sets(ns_id_array, ns_cnts_array, ns_df_cnts_array,
+                           ns_ptrs, ns_df_ptrs, ns_list, ns_df_list);
+
+    if (new_ns_len == ns_len) {
+      printf("No change to side set\n");
+    }
+  }
+
+  return ex_put_concat_node_sets(exoID, ns_id_array, ns_cnts_array, 
                                  ns_df_cnts_array, ns_ptrs, ns_df_ptrs,
                                  ns_list, ns_df_list);
 }
 
+int  PCExodusFile::put_side_sets(int num_points, int* node_ids,
+                                 int* num_el, int* ss_conn, 
+                                 int num_hexes, int* hexes,
+                                 int* ss_id_array, int* ss_cnts_array, 
+                                 int* ss_df_cnts_array, int* ss_ptrs, 
+                                 int* ss_df_ptrs, int* ss_list, 
+                                 int* ss_side_list, double* ss_df_list)
+{
+  bool debug_flag = false;
+  
+    // fail if no file opened or no side sets
+  if (exoID == 0 || numSideSets == 0)  
+    return 1;
+
+  if (debug_flag) {
+    printf("\nSide set connectivity before conversion\n");
+    print_side_sets_conn(num_el, ss_conn);
+  }
+
+    // map new ids to old ids
+  std::map<int,int> node_map;
+  int i;
+  for (i = 0; i < num_points; i++) {
+    node_map[node_ids[i]] = i + 1;
+  }
+    
+    // convert connectivity to new node ids
+  int num_elems = 0;
+  for (i = 0; i < numSideSets; i++) {
+    num_elems += num_el[i];
+  }
+  int* c = ss_conn;
+  int j;
+  for (j = 0; j < num_elems * 4; j++) {
+    if (node_map.find(c[j]) == node_map.end()) {
+      c[j] = -1;
+      printf("found bad node at index %d\n", j);
+    }
+    else {
+      c[j] = node_map[c[j]];
+    }
+  }  
+
+  if (debug_flag) {
+    printf("\nSide set connectivity after conversion\n");
+    print_side_sets_conn(num_el, ss_conn);
+  }
+
+    // increment zero-based connectivity
+  const int num_nodes_elem = 8;
+  increment_hexes(num_nodes_elem, hexes);
+
+    // storage for hex element side set
+  int hex_ss_ptrs[numSideSets];
+  int hex_ss_df_ptrs[numSideSets];
+  int hex_ss_df_cnts[numSideSets];
+  int* hex_ss_cnts = num_el;
+  int* hex_ss_list = new int[num_elems];
+  int* hex_ss_side_list = new int[num_elems];
+  double* hex_ss_df_list = new double[num_elems];
+  if (hex_ss_list == NULL || hex_ss_side_list == NULL ||
+      hex_ss_df_list == NULL) {
+    delete [] hex_ss_df_list;
+    delete [] hex_ss_side_list;
+    delete [] hex_ss_list;
+    printf("Error: failed to write side sets\n");
+    return 1;
+  }
+  memset(hex_ss_list, 0, num_elems * sizeof(int));
+  memset(hex_ss_side_list, 0, num_elems * sizeof(int));
+  memset(hex_ss_df_list, 0, num_elems * sizeof(double));
+  
+
+  hex_ss_ptrs[0] = 0;
+  hex_ss_df_ptrs[0] = 0;
+  hex_ss_df_cnts[0] = hex_ss_cnts[0];
+  for (i = 1; i < numSideSets; i++) {
+    hex_ss_ptrs[i] += hex_ss_cnts[i-1];
+    hex_ss_df_ptrs[i] += hex_ss_df_cnts[i-1];
+    hex_ss_df_cnts[i] = hex_ss_cnts[i];
+  }
+  
+    // generate list of hexes, sides and distribution factors for side sets
+  const unsigned char code[8] =
+      {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+  unsigned char marks[num_hexes];
+  int first = 0;
+  int ss_num;
+  for (ss_num = 0; ss_num < numSideSets; ss_num++) {
+    int last = first + num_el[ss_num] * 4;
+
+      // put side set nodes in std::set and mark hexes
+    std::set<int> side_set_nodes;
+    for (i = first; i < last; i++) {
+      assert(ss_conn[i] > 0);
+      side_set_nodes.insert(ss_conn[i]);
+    }
+
+      // mark hexes with bit code indicating which node is in side set
+    memset(marks, 0, num_hexes * sizeof(char));
+    int* h = hexes;
+    for (i = 0; i < num_hexes; i++) {
+      for (j = 0; j < 8; j++) {
+        assert(h[j] > 0);
+        if (side_set_nodes.find(h[j]) != side_set_nodes.end()) {
+          marks[i] |= code[j];
+        }
+      }
+      h += 8;
+    }
+
+    if (debug_flag) {
+      printf("\nHex codes\n");
+      int begin = 0;
+      for (i = 0; i < num_hexes; i += 10) {
+        printf("%5d:", i+1);
+        int end = begin + 10;
+        end = end < num_hexes ? end : num_hexes;
+        for (j = begin; j < end; j++) {
+          printf(" %#5x", marks[j]);
+        }
+        printf("\n");
+        begin = end;
+      }
+    }
+    first = last;
+
+      // copy element ids and side id
+    int nn = hex_ss_ptrs[ss_num];
+    for (i = 0; i < num_hexes; i++) {
+      int side = 0;
+      switch (marks[i]) {
+        case 0x33: side = 1; break;
+        case 0x66: side = 2; break;
+        case 0xcc: side = 3; break;
+        case 0x99: side = 4; break;
+        case 0x0f: side = 5; break;
+        case 0xf0: side = 6; break;
+        default: break;
+      }
+      if (side > 0) {
+        hex_ss_list[nn] = i+1;
+        hex_ss_side_list[nn] = side;
+        ++nn;
+      }
+    }
+    assert(nn == hex_ss_cnts[ss_num]);
+
+      // are distribution factors constant?
+    bool constant_df = true;
+    int begin = ss_df_ptrs[ss_num];
+    int end   = begin + ss_df_cnts_array[ss_num];
+    double df = ss_df_list[begin];
+    for (i = begin + 1; i < end; i++) {
+      if (df != ss_df_list[i]) {
+        constant_df = false;
+        break;
+      }
+    }
+
+    if (!constant_df) {
+      printf("Error: non-uniform distribution factors not supported yet!\n");
+    }
+    else {
+      int begin = hex_ss_df_ptrs[ss_num];
+      int end   = begin + hex_ss_df_cnts[ss_num];
+      for (i = begin; i < end; i++) {
+        hex_ss_df_list[i] = df;
+      }
+    }
+  }
+
+    // write the side sets
+  int error = ex_put_concat_side_sets(exoID, ss_id_array, hex_ss_cnts,
+                                      hex_ss_df_cnts, hex_ss_ptrs, 
+                                      hex_ss_df_ptrs, hex_ss_list, 
+                                      hex_ss_side_list, hex_ss_df_list);
+
+    // delete memory
+  delete [] hex_ss_df_list;
+  delete [] hex_ss_side_list;
+  delete [] hex_ss_list;
+
+  return error;
+}
+
 void PCExodusFile::read_init()
 {
+  char* prop_name;
+  
     // open failed 
   if (exoID == 0)
     return;
@@ -615,15 +1215,15 @@ void PCExodusFile::read_init()
     // read "SweepID" property
   int surf_sweep1_ids[numElemBlks];
   memset(surf_sweep1_ids, 0, numElemBlks * sizeof(int));
-  char *prop_name = "_CU_SweepID1";
   if (error == 0) {
+    prop_name = "_CU_SweepID1";
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, 
                               surf_sweep1_ids);
   }
   int surf_sweep2_ids[numElemBlks];
   memset(surf_sweep2_ids, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_SweepID2";
   if (error == 0) {
+    prop_name = "_CU_SweepID2";
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, 
                               surf_sweep2_ids);
   }
@@ -631,14 +1231,14 @@ void PCExodusFile::read_init()
     // read "SurfaceType" property
   int surf_types1[numElemBlks];
   memset(surf_types1, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_SurfaceType1";
   if (error == 0) {
+    prop_name = "_CU_SurfaceType1";
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, surf_types1);
   }
   int surf_types2[numElemBlks];
   memset(surf_types2, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_SurfaceType2";
   if (error == 0) {
+    prop_name = "_CU_SurfaceType2";
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, surf_types2);
   }
 
@@ -647,8 +1247,8 @@ void PCExodusFile::read_init()
   memset(num_hexes1, 0, numElemBlks * sizeof(int));
   int num_hexes2[numElemBlks];
   memset(num_hexes2, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_NumberHexes1";
   if (error == 0) {
+    prop_name = "_CU_NumberHexes1";
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, num_hexes1);
   }
   if (error == 0) {
@@ -664,29 +1264,37 @@ void PCExodusFile::read_init()
     // read user specified block id
   int block1_ids[numElemBlks];
   memset(block1_ids, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_UserBlockNo1";
-  if (error == 0) {
-    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, block1_ids);
-  }
   int block2_ids[numElemBlks];
   memset(block2_ids, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_UserBlockNo2";
   if (error == 0) {
+    prop_name = "_CU_UserBlockNo1";
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, block1_ids);
+  }
+  if (error == 0) {
+    prop_name = "_CU_UserBlockNo2";
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, block2_ids);
+  }
+    // nothing found (old format) so ignore
+  else {
+    error = 0;
   }
 
     // read user specified element type
   int nodes_per_hex1[numElemBlks];
   memset(nodes_per_hex1, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_NodesPerHex1";
-  if (error == 0) {
-    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, nodes_per_hex1);
-  }
   int nodes_per_hex2[numElemBlks];
   memset(nodes_per_hex2, 0, numElemBlks * sizeof(int));
-  prop_name = "_CU_NodesPerHex2";
   if (error == 0) {
+    prop_name = "_CU_NodesPerHex1";
+    error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, nodes_per_hex1);
+  }
+  if (error == 0) {
+    prop_name = "_CU_NodesPerHex2";
     error = ex_get_prop_array(exoID, EX_ELEM_BLOCK, prop_name, nodes_per_hex2);
+  }
+    // nothing found (old format) so ignore
+  else {
+    error = 0;
   }
 
     // generate sweep volumes for all SweepIDs
