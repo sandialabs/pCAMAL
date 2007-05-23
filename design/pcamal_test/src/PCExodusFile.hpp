@@ -26,8 +26,7 @@ public:
   int  get_num_sweep_vols();
   int  get_num_hexes(int num_blks, int* num_hexes);
   void get_param(int& num_blks, int& num_node_sets, int& num_side_sets);
-  bool get_node_sets(int num_points, int* node_ids, int& new_node_sets, 
-                     int* ns_id_array, int* ns_cnts_array,
+  bool get_node_sets(int& new_node_sets, int* ns_id_array, int* ns_cnts_array,
                      int* ns_df_cnts_array, int* ns_ptrs, int* ns_df_ptrs,
                      int* &ns_list, double* &ns_df_list);
   bool get_side_sets(int vol_id, int& new_side_sets, int* num_el,

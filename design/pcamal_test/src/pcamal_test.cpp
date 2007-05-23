@@ -169,17 +169,16 @@ int main(int argc, char **argv)
       int ns_df_ptrs[num_node_sets];
       int* ns_list       = NULL;
       double* ns_df_list = NULL;
-      if (!pc_input.get_node_sets(num_points, node_ids, new_node_sets, 
-                                  ns_id_array, ns_cnts_array,
-                                  ns_df_cnts_array, ns_ptrs, ns_df_ptrs,
-                                  ns_list, ns_df_list)) {
+      if (pc_input.get_node_sets(new_node_sets, ns_id_array,
+                                 ns_cnts_array, ns_df_cnts_array,
+                                 ns_ptrs, ns_df_ptrs, ns_list, ns_df_list)) {
+        exo_out.put_node_sets(num_points, node_ids, ns_id_array, 
+                              ns_cnts_array, ns_df_cnts_array, 
+                              ns_ptrs, ns_df_ptrs, ns_list, ns_df_list);
+      }
+      else {
         printf("ERROR: failed to write node sets!\n");
       }
-    
-      exo_out.put_node_sets(num_points, node_ids, ns_id_array, ns_cnts_array, 
-                            ns_df_cnts_array, ns_ptrs, ns_df_ptrs, 
-                            ns_list, ns_df_list);
-      
       delete [] ns_list;
       delete [] ns_df_list;
     }
@@ -197,18 +196,19 @@ int main(int argc, char **argv)
       int* ss_side_list;
       int* ss_conn;
       double* ss_df_list;
-      if (!pc_input.get_side_sets(vol_id, new_side_sets, num_el,
-                                  ss_conn, ss_id_array, ss_cnts_array,
-                                  ss_df_cnts_array, ss_ptrs, ss_df_ptrs,
-                                  ss_list, ss_side_list, ss_df_list))
+      if (pc_input.get_side_sets(vol_id, new_side_sets, num_el,
+                                 ss_conn, ss_id_array, ss_cnts_array,
+                                 ss_df_cnts_array, ss_ptrs, ss_df_ptrs,
+                                 ss_list, ss_side_list, ss_df_list)) {
+        exo_out.put_side_sets(num_points, node_ids, num_el, ss_conn, 
+                              num_hexes, hexes, 
+                              ss_id_array, ss_cnts_array, 
+                              ss_df_cnts_array, ss_ptrs, ss_df_ptrs, 
+                              ss_list, ss_side_list, ss_df_list);
+      }
+      else {
         printf("ERROR: failed to write side sets!\n");
-
-      exo_out.put_side_sets(num_points, node_ids, num_el, ss_conn, 
-                            num_hexes, hexes, 
-                            ss_id_array, ss_cnts_array, 
-                            ss_df_cnts_array, ss_ptrs, ss_df_ptrs, 
-                            ss_list, ss_side_list, ss_df_list);
-
+      }
       delete [] ss_df_list;
       delete [] ss_conn;
       delete [] ss_side_list;

@@ -103,8 +103,7 @@ void PCExodusFile::read_sweep_prop(int vol_id, int &block_id, int &sweep_id,
   }  
 }
 
-bool PCExodusFile::get_node_sets(int num_points, int* node_ids, 
-                                 int& new_node_sets, int* ns_id_array, 
+bool PCExodusFile::get_node_sets(int& new_node_sets, int* ns_id_array, 
                                  int* ns_cnts_array, int* ns_df_cnts_array, 
                                  int* ns_ptrs, int* ns_df_ptrs,
                                  int* &ns_list, double* &ns_df_list)
