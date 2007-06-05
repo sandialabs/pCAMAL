@@ -517,7 +517,7 @@ int main(int argc, char **argv) {
         {
         cout <<  "## Subdomain "
              << vol_id
-             << "was not to be swept."
+             << " was not to be swept."
              << endl;
         continue;
         }

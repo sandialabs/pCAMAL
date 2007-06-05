@@ -72,6 +72,7 @@ private:
   int numElemBlks;
   int numNodeSets;
   int numSideSets;
+  int numOutputBlocks;
   float mVersion;
   char fileName[MAX_STR_LENGTH+1];
   char mTitle[MAX_LINE_LENGTH+1];

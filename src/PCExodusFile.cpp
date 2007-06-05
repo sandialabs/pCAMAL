@@ -11,7 +11,7 @@
 PCExodusFile::PCExodusFile(char* const file_name, pce::FileOp op)
         : zeroBased(true), exoID(0), cpuWord(8), fileWord(0), numDim(0), 
           numNodes(0), numElems(0), numElemBlks(0), numNodeSets(0), 
-          numSideSets(0), mVersion(0.0)
+          numSideSets(0), numOutputBlocks(0), mVersion(0.0)
 {
   switch(op) {
       // open exising file for read only
@@ -56,6 +56,8 @@ int PCExodusFile::get_num_hexes(int num_blks, int* num_hexes)
   if (exoID == 0 || num_blks < sweepVols.size())
     return 0;
 
+  memset(num_hexes, 0, num_blks * sizeof(int));
+
   int total = 0;
   int i;
   for (i = 0; i < sweepVols.size(); i++) {
@@ -80,7 +82,7 @@ void PCExodusFile::get_param(int& num_blks, int& num_node_sets,
   if (exoID == 0)
     return;
 
-  num_blks      = numElemBlks;
+  num_blks      = numOutputBlocks;
   num_node_sets = numNodeSets;
   num_side_sets = numSideSets;
 }
@@ -1319,6 +1321,14 @@ void PCExodusFile::read_init()
     delete_sweep_volumes();
     numElemBlks = 0;
   }
+
+    // find other blocks (non-sweepable)
+  int i;
+  for (i = 0; i < numElemBlks; i++) {
+    if (surf_sweep1_ids[i] == 0 && surf_sweep2_ids[i] == 0)
+      ++numOutputBlocks;
+  }
+  numOutputBlocks += sweepVols.size();
 }
 
 int PCExodusFile::convert_sweep_data(int* eb_ids, int* block_ids, 
