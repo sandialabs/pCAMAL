@@ -1,4 +1,5 @@
 #include "mpi.h"
+#include "sys/time.h"
 
 #include <cfloat>
 #include <cmath>
@@ -406,6 +407,7 @@ int main(int argc, char **argv) {
   char fileout[50];
   bool verbose = 0;
   time_t t0, t1;
+  struct timeval tv0, tv1;
 
   if ( argc < 4 ) 
     {
@@ -419,6 +421,7 @@ int main(int argc, char **argv) {
 
   // Start clock
   time ( &t0 );
+  gettimeofday ( &tv0, NULL );
 
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
@@ -567,13 +570,16 @@ int main(int argc, char **argv) {
 
   // End clock
   time ( &t1 );
+  gettimeofday ( &tv1, NULL );
 
   if ( ! myrank ) 
     {
     cout <<  endl 
-	 << "# Done (walltime = " 
+	 << "# Done, walltime = " 
 	 << difftime( t1, t0 )
-	 << " sec). Exiting PCAMAL." 
+	 << " sec ( " 
+	 << difftime( tv1.tv_usec, tv0.tv_usec )
+	 << " usec). Exiting PCAMAL." 
 	 << endl
 	 <<  "===============" 
 	 << endl;
