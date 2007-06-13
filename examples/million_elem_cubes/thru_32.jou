@@ -1,0 +1,53 @@
+## /home/laforti/cubitbeta/./bin/clarox
+## Cubit Version 11.0b
+## Cubit Build 846
+## Revised 06/08/2007 16:54:37 MST
+## Running 06/11/2007 01:16:37 PM
+## Command Options:
+## -warning = On
+## -information = On
+undo on
+brick x 100
+volume 1 interval 100
+volume 1 scheme sweep
+set parallel meshing on
+set parallel meshing on
+mesh volume 1
+export parallel "1cube.pcamal.g"
+delete mesh
+webcut volume 1 xplane
+volume all interval 100
+volume all scheme sweep
+set parallel meshing on
+mesh volume all
+export parallel "2cubes.pcamal.g"
+delete mesh
+webcut volume all yplane
+volume all interval 100
+volume all scheme sweep
+set parallel meshing on
+mesh volume all
+export parallel "4cubes.pcamal.g"
+delete mesh
+webcut volume all zplane
+volume all interval 100
+volume all scheme sweep
+set parallel meshing on
+mesh volume all
+export parallel "8cubes.pcamal.g"
+delete mesh
+webcut volume with x_coord > 0 with plane xplane offset 25 noimprint nomerge
+webcut volume with x_coord < 0 with plane xplane offset -25 noimprint nomerge
+volume all interval 100
+volume all scheme sweep
+set parallel meshing on
+mesh volume all
+export parallel "16cubes.pcamal.g"
+delete mesh
+webcut volume with y_coord < 0 with plane yplane offset -25 noimprint nomerge
+webcut volume with y_coord > 0 with plane yplane offset 25 noimprint nomerge
+volume all interval 100
+volume all scheme sweep
+set parallel meshing on
+mesh volume all
+export parallel "32cubes.pcamal.g"
