@@ -2,9 +2,9 @@
 // description: implementation of pCAMAL Exodus file interface
 // author: Michael Stephenson
 
-#include "assert.h"
 #include <set>
 #include <string.h>
+#include <assert.h>
 #include "PCExodusFile.hpp"
 #include "PCSweepVolume.hpp"
 #include "PCMLSweeper.hpp"
