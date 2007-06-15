@@ -210,7 +210,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
       }
     }
   
-  int connect[num_quads * 4];
+  int* connect = new int[num_quads * 4];
   pc_input->read_sweep_conn( vol_id, num_points, num_quads, node_ids, connect );
   if ( verbose > 1 ) 
     {
@@ -242,19 +242,22 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   sweeper.set_boundary_mesh( num_points, x_coor, y_coor, z_coor,
                              num_quads, connect,
                              num_src_surf, num_surf_quads, num_tgt_quads );
-
+  
 
   // Generate swept hex mesh
   sweeper.generate_mesh( num_points_out, num_hexes );
-  delete [] x_coor;
-  delete [] y_coor;
+  delete [] connect;
+  connect = NULL;
   delete [] z_coor;  
-
+  delete [] y_coor;
+  delete [] x_coor;
+  x_coor = y_coor = z_coor = NULL;
+  
   // Retrieve mesh
-  double x_coor_m[num_points_out];
-  double y_coor_m[num_points_out];
-  double z_coor_m[num_points_out];
-  int connect_m[num_hexes * 8];
+  double* x_coor_m = new double[num_points_out];
+  double* y_coor_m = new double[num_points_out];
+  double* z_coor_m = new double[num_points_out];
+  int* connect_m = new int[num_hexes * 8];
   sweeper.get_mesh( num_points_out, x_coor_m, y_coor_m, z_coor_m,
                     num_hexes, connect_m );
 
@@ -295,6 +298,10 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
                         x_coor_m, y_coor_m, z_coor_m,
                         connect_m, sweep_id, block_id, nodes_per_hex,
                         fileout, verbose );
+  delete [] connect_m;
+  delete [] z_coor_m;  
+  delete [] y_coor_m;
+  delete [] x_coor_m;
   delete [] node_ids;
 
   return 1;
