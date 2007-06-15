@@ -449,10 +449,10 @@ int sweep_and_output(char* filename, int vol_id, int block_id,
   int num_hexes = 0;
   bool ret_val = sweeper.generate_mesh(num_points_out, num_hexes);
 
-  double x_coor[num_points_out];
-  double y_coor[num_points_out];
-  double z_coor[num_points_out];
-  int    hexes[num_hexes * 8];
+  double* x_coor = new double[num_points_out];
+  double* y_coor = new double[num_points_out];
+  double* z_coor = new double[num_points_out];
+  int*    hexes  = new int[num_hexes * 8];
 
     // retrieve mesh
   if (ret_val) {
@@ -490,6 +490,11 @@ int sweep_and_output(char* filename, int vol_id, int block_id,
 
     num_hexes = err == 0 ? num_hexes : 0;
   }
+
+  delete [] hexes;
+  delete [] z_coor;
+  delete [] y_coor;
+  delete [] x_coor;  
 
   return num_hexes;
 }
