@@ -507,7 +507,7 @@ int main(int argc, char **argv) {
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
                                                 num_node_sets, num_side_sets,
                                                 num_points_out, num_hexes,
-                                                q_mesh, PCAMAL_QUALITY_SHAPE,
+                                                q_mesh, PCAMAL_QUALITY_MAX_ASPECT_FROBENIUS,
                                                 verbose );
 
       // Update local statistics
@@ -559,9 +559,9 @@ int main(int argc, char **argv) {
          <<  "  total number of hexes: "
          << n_hex_total
          << endl
-         <<  "  mesh quality ("
+         <<  "  mesh quality ( "
          << qualityName.c_str()
-         << "):"
+         << " ):"
          << " min= "
          << q_mesh_total[0]
          << " mean= "
