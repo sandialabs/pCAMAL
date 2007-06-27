@@ -507,7 +507,7 @@ int main(int argc, char **argv) {
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
                                                 num_node_sets, num_side_sets,
                                                 num_points_out, num_hexes,
-                                                q_mesh, PCAMAL_QUALITY_MAX_ASPECT_FROBENIUS,
+                                                q_mesh, PCAMAL_QUALITY_STRETCH,
                                                 verbose );
 
       // Update local statistics

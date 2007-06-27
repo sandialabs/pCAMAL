@@ -135,6 +135,7 @@ PCHexMeshQuality::PCHexMeshQuality( double* x_coor, double* y_coor, double* z_co
     coordinates[j][1] = y_coor[c[j]];
     coordinates[j][2] = z_coor[c[j]];
     }
+
   q_elem = hexQuality( 8, coordinates );
   this->min = this->max = this->mean = q_elem;
   this->mom2 = q_elem * q_elem;
@@ -149,7 +150,6 @@ PCHexMeshQuality::PCHexMeshQuality( double* x_coor, double* y_coor, double* z_co
       coordinates[j][2] = z_coor[c[j]];
       }
     q_elem = hexQuality( 8, coordinates );
-    cout << q_elem << endl;
     this->mean += q_elem;
     this->mom2 += q_elem * q_elem;
     if ( q_elem < this->min) this->min = q_elem;
