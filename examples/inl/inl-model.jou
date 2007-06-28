@@ -1,0 +1,542 @@
+## journal file to generate hex mesh of INL model
+## uses clean geometry from Corey Ernst
+## meshing by Mike Stephenson
+## April 5, 2007
+
+import cub 'clean_geom.cub'
+graphics perspective off
+vol 466 327 vis off
+
+# sizing
+volume all size 6
+
+# seperators
+surface 2073 2071 1723 1713 976 969 448 443 scheme map
+surface 2093 2098 5463 5470 640 643 2971 2978 scheme map
+surface 2801 2805 738 741 2523 2514 3328 3320 scheme map
+surface 4219 4217 3935 3933 1503 1505 722 731 scheme map
+surface 2165 2172 3914 3920 3206 3214 613 622 scheme map
+surface 5240 5233 1267 1259 108 103 4175 4168 scheme map
+surface 3698 3706 59 66 655 665 2219 2229 scheme map
+surface 2452 2458 5633 5642 5766 5763 311 304 scheme map
+surface 5580 5576 1193 1185 123 125 1598 1600 scheme map
+surface 5377 5383 3237 3241 149 156 357 363 scheme map
+
+# curved ribs
+surface 3661 3657 1237 5884 5502 3466 263 1412 scheme map
+surface 5566 1514 2844 967 962 600 3886 404 scheme map
+surface 1521 1525 1270 1042 1544 5894 3494 633 scheme map
+surface 3947 5682 5687 2446 2508 5954 4177 3228 scheme map
+surface 3482 6116 2313 4022 2327 3672 3006 392 scheme map
+surface 4009 2321 5510 5752 2233 5901 3217 4006 scheme map
+surface 1708 5693 4183 5981 1587 5616 1339 5630 scheme map
+surface 3018 4100 3500 759 4195 2336 1410 3692 scheme map
+surface 1675 2063 2238 2996 3654 5921 1468 672 scheme map
+surface 5387 1346 2471 3961 1667 2352 5916 274 scheme map
+
+# center
+surface 3513 1610 2528 3558 scheme pave
+surface 3638 3682 601 3887 scheme pave
+surface 4225 3438 3689 1337 scheme pave
+surface 2332 5498 594 1024 scheme pave
+surface 3286 1166 1493 628 scheme pave
+surface 3673 1093 1110 5758 scheme pave
+surface 5567 2102 2533 332 scheme pave
+surface 5897 113 2982 5699 scheme pave
+surface 5517 1354 1235 3709 scheme pave
+surface 2997 2305 5910 377 scheme pave
+
+# isolators
+surface 4090 3715 5646 767 1049 654 2814 2159 scheme map
+surface 5558 1045 3431 3230 5552 4121 5964 3958 scheme map
+surface 607 1329 3490 5967 3563 3455 1032 1459 scheme map
+surface 5880 3876 3926 5947 5871 4189 2835 3475 scheme map
+surface 2165 2172 3914 3920 3206 3214 613 622 scheme map
+surface 1144 1028 2179 397 1253 5313 4017 1150 scheme map
+surface 146 3942 5867 583 2985 3647 5743 353 scheme map
+surface 3894 2464 3009 435 326 1056 5623 1100 scheme map
+surface 5975 1529 3510 2346 2110 1583 488 54 scheme map
+surface 2465 35 1198 5396 2854 5516 1469 1423 scheme map
+surface 3388 2355 3903 2477 2846 1061 1202 1417 scheme map
+
+# skew control for seperators
+control skew surface 2073 2071 1723 1713 976 969 448 443
+control skew surface 2093 2098 5463 5470 640 643 2971 2978
+control skew surface 2801 2805 738 741 2523 2514 3328 3320
+control skew surface 4219 4217 3935 3933 1503 1505 722 731
+control skew surface 2165 2172 3914 3920 3206 3214 613 622
+control skew surface 5240 5233 1267 1259 108 103 4175 4168
+control skew surface 3698 3706 59 66 655 665 2219 2229 
+control skew surface 2452 2458 5633 5642 5766 5763 311 304
+control skew surface 5580 5576 1193 1185 123 125 1598 1600
+control skew surface 5377 5383 3237 3241 149 156 357 363
+
+# mesh tubes
+# biggest tubes
+# inside
+surface 70 1398 1114 753 4028 320 3333 2915 3767 3393 5990 2256 369 1432 4103 3520 scheme pave
+# outside
+surface 4653 4625 4616 4615 4922 4931 4927 4872 4877 4867 4413 4334 4372 4380 4329 4323 scheme submap
+# sliver
+surface 1552 4086 494 993 3397 3906 5525 5530 2246 5994 30 4037 3968 2885 749 1616 scheme map
+
+# medium tubes
+# inside
+surface 1456 574 558 44 575 3874 5482 2212 1243 484 3838 5318 562 5814 5486 5818 3280 2876 1247 5946 scheme pave
+#outside
+surface 4696 4670 4647 4645 4664 4273 4265 4961 4958 4278 4937 4952 4912 4902 4948 4426 4402 4367 4407 4432 scheme submap
+
+#control skew surface 4696 4670 4647 4645 4664 4273 4265 4961 4958 4278 4937 4952 4912 4902 4948 4426 4402 4367 4407 4432
+
+# smaller tubes
+# inside
+surface 3247 2831 3470 5322 4970 2156 5536 582 scheme pave
+# outside
+surface 4591 4690 4859 4308 4838 4260 4301 4421 scheme submap
+
+# 'eyes'
+curve 15442 15443 interval 4
+surf 4848 scheme pave
+surf 2215 4889 scheme submap
+surf 1536 6131 size 4
+surf 1536 6131 scheme pave
+
+curve 4329 interval 8
+surf 4833 scheme pave
+surf 2085 4342 scheme submap
+surf 3197 4357 size 4
+surf 3197 4357 scheme pave
+
+curve 15518 15519 interval 4
+surf 4318 scheme pave
+surf 2436 4678 scheme submap
+surf 1291 4708 size 4
+surf 1291 4708 scheme pave
+
+curve 16878 16879 interval 4
+surf 4587 scheme pave
+surf 4599 5487 scheme submap
+surf 2502 4346 size 4
+surf 2502 4346 scheme pave
+
+# fine concentric tubes
+curve 12897 12898 interval 4
+surface 4701 scheme pave
+surface 717 4663 2429 4634 scheme submap
+
+curve 5132 interval 8
+surf 4316 scheme pave
+surf 2497 4885 5821 4606 scheme submap
+
+curve 7352 interval 8
+surf 4283 scheme pave
+surf 3631 4384 2140 4896 scheme submap
+
+curve 16978 16979 interval 4
+curve 15432 15433 interval 4
+surf 4440 scheme pave
+surf 4160 4629 2199 4850 scheme submap
+
+# small tubes (inner)
+curve 15943 15944 interval 6
+curve 13366 13365 interva 6
+surf 1140 5326 scheme pave
+surf 4682 4714 scheme submap
+
+curve 12785 12786 interval 6
+curve 4316 interval 12
+surf 386 2079 scheme pave
+surf 4289 4293 scheme submap
+
+curve 15512 15513 interval 6
+curve 850 interval 12
+surf 384 2428 scheme pave
+surf 4252 4255 scheme submap
+
+curve 7038 interval 12
+curve 16147 16146 interval 6
+surf 3474 4158 scheme pave
+surf 4443 4447 scheme submap
+
+# more tubes
+# left
+surf 6011 1391 6016 5796 6006 2820 scheme pave
+surf 469 6021 6025 2280 6033 scheme submap
+
+# top
+surf 3116 6038 3122 3379 3107 3992 scheme pave
+surf 1578 3125 3130 7 3135 scheme submap
+
+# tube bundle (outer)
+# bottom
+curve 4910 interval 8
+curve 13517 13518 interval 9
+surf 5279 2384 5248 size 3
+surf 5279 2384 scheme pave
+surf surf 5248 1704 scheme submap
+
+curve 16663 16664 16661 16662 12729 12730 interval 7
+curve 16660 16659 15420 15421 12735 12736 interval 7
+surf 2409 1637 2393 3064 2187 430 size 3
+surf 2409 1637 2393 3064 2187 430 scheme pave
+surf 4059 3552 5850 1654 5846 3259 scheme submap
+surf 3412 3841 538 4127 532 3603 scheme submap
+surf 6 3610 3543 426 3537 15 scheme submap
+surf 4133 6052 2406 3846 2400 6044 scheme submap
+surf 3300 6060 5677 2926 5669 2142 scheme submap
+surf 3104 5926 3311 5652 3306 24 scheme submap
+
+surf 5254 size 4
+surf 5254 scheme pave
+
+surf 3096 5281 1647 5241 scheme submap
+surf 2952 scheme submap
+surf 5273 scheme pave
+surf 1159 5287 scheme submap
+
+# right
+curve 17166 17165 interval 4
+curve 11252 interval 18
+surf 5446 3426 5417 size 3
+surf 5446 3426 scheme pave
+surf 5417 5838 scheme submap
+
+curve 16735 16736 13453 13454 15478 15479 interval 7
+curve 4559 6253 6411 interval 14
+surf 551 3156 3194 3834 1011 5825 size 3
+surf 551 3156 3194 3834 1011 5825 scheme pave
+surf 4072 2193 5370 5737 5366 3147 scheme submap
+surf 2484 2872 2795 5829 2862 3038 scheme submap
+surf 3613 5657 1005 3141 1001 2205 scheme submap
+surf 5405 1662 1282 539 1276 3066 scheme submap
+surf 548 4138 3762 5730 3758 1449 scheme submap
+surf 3621 2299 3030 1125 3022 2298 scheme submap
+
+surf 5424 size 4
+surf 5424 scheme pave
+surf 5424 sizing function linear
+
+surf 5855 5452 2788 5412 2287 scheme submap
+surf 5440 scheme pave
+surf 5861 5457 scheme submap
+
+# outer void
+surf 782 scheme pave
+
+## inside serpentine
+# top left
+surf 5358 scheme pave
+surf 5358 size 4
+surf 1696 5725 1684 3405 1690 scheme submap
+
+# bottom left
+#curve 15552 15553 interval same
+curv 17078 17077 interval same
+surf 3575 size 3
+surf 3575 3830 3057 3577 3293 3572 2823 3598 scheme pave
+surf 4000 3583 3591 scheme submap
+
+# bottom right
+curve 17063 17064 interval same
+surf 3163 size 3
+surf 3163 4067 343 3170 3851 3159 2281 3187 scheme pave
+surf 2390 3175 3180 scheme submap
+
+# top right
+# center
+curve 12749 12750 interval 4
+surf 1559 5333 5777 1309 5771 size 4
+surf 78 scheme pave
+surf 1559 5333 5777 1309 scheme submap
+surf 5771 scheme pave
+surf 6080 scheme submap
+
+# middle ring
+surf 5542 4973 1364 47 1082 3978 3971 2359 size 4
+surf 5542 4973 1364 47 1082 3978 3971 2359 scheme pave
+surf 1439 5165 1174 1482 5045 3526 1553 5160 4209 1214 5116 4044 1487 5145 6066 3533 5107 773 1210 5038 1477 3781 5177 1120 size 4
+surf 1439 5165 1174 1482 5045 3526 1553 5160 4209 1214 5116 4044 1487 5145 6066 3533 5107 773 1210 5038 1477 3781 5177 1120 scheme submap
+
+#outer ring
+surf 2888 777 size 4
+surf 2888 777 scheme pave
+surf 415 5125 2181 5548 5188 4976 size 4
+surf 415 5125 2181 5548 5188 4976 scheme submap
+
+curve 6260 interval 8
+curve 17094 17095 interval 6
+surf 3074 size 3
+surf 5131 3074 scheme pave
+surf 5181 3788 scheme submap
+
+curve 16999 17000 interval 4
+surf 4111 size 3
+surf 5158 4111 scheme pave
+surf 5120 3723 scheme submap
+
+curve 12791 12792 interval 4
+surf 410 size 3
+surf 5142 410 scheme pave
+surf 5049 498 scheme submap
+
+curve 4396 interval 8
+surf 2122 size 3
+surf 5174 2122 scheme pave
+surf 5151 983 scheme submap
+
+curve 12795 12796 interval 7
+surf 420 scheme pave
+surf 1219 4990 1678 3254 138 131 scheme submap
+
+curve 13337 13338 interval 7
+surf 3730 scheme pave
+surf 988 2257 1304 454 1297 4983 scheme submap
+
+curve 12825 12826 interval 7
+surf 3041 scheme pave
+surf 511 81 6097 5592 6096 5707 scheme submap
+
+curve 15568 15569 interval 7
+surf 4118 scheme pave
+surf 2891 6072 2936 6074 2932 3800 scheme submap
+
+curve 17109 17110 interval 7
+curve 17013 17014 interval 7
+surf 3733 scheme pave 
+surf 4201 3793 284 4049 276 1368 scheme submap
+
+curve 1425 interval 14
+surf 1446 scheme pave
+surf 684 3737 1075 5211 1068 1374 scheme submap
+
+curve 17088 17089 interval 7
+surf 3804 scheme pave
+surf 6085 2365 3343 342 3338 1226 scheme submap
+
+curve 8562 interval 14
+surf 4246 scheme pave
+surf 4998 1154 4240 676 4231 508 scheme submap
+
+# tube void
+surf 5058 size 4
+surf 5058 scheme pave
+
+# tube case
+surf 5586 5135 scheme submap
+
+# center bundle
+# center tube
+curve 16631 16632 interval 4
+curve 16633 16634 interval 7
+surf 6104 2651 size 4
+surf 2752 6104 scheme pave
+surf 2651 5341 scheme submap
+
+# middle ring
+curve 17200 17201 12891 12892 13498 13497 interval 7
+curve 187 11959 interval 14
+surf 1623 6109 3204 2860 97 scheme pave
+surf 3372 2716 3363 5789 2610 1619 3984 2570 2274 708 2772 5600 710 2739 5345 scheme submap
+
+curve 6674 interval 14
+surf 3360 scheme pave
+surf 3289 2370 3051 458 3048 3814 scheme submap
+
+# inner void
+surf 2694 size 4
+surf 2694 scheme pave
+
+# outer ring
+curve 5309 interval 8
+curve 16950 16951 interval 7
+surf 2584 3079 scheme pave
+surf 2736 scheme submap
+
+curve 5240 interval 8
+curve 5429 interval 14
+surf 2549 5351 scheme pave
+surf 2646 scheme submap
+
+curve 17217 17218 interval 4
+curve 16944 16945 interval 7
+surf 2786 3088 scheme pave
+surf 2630 scheme submap
+
+curve 5640 interval 8
+curve 5261 interval 14
+surf 2748 3820 scheme pave
+surf 2560 scheme submap
+
+curve 5421 5514 interval 14
+surf 2690 2644 scheme pave
+surf 3094 2623 5604 2554 5208 2604 scheme submap
+
+curve 17112 17113 15495 15494 interval 7
+curve 1461 interval 14
+surf 3356 1571 2943 scheme pave
+surf 3747 5786 2548 5223 2580 700 93 2596 5712 2612 2376 3987 2637 5717 2668 scheme submap
+
+curve 13433 13434 13431 13432 interval 7
+surf 1627 3376 scheme pave
+surf 1388 2131 2682 5195 2755 1381 5199 2778 4054 2537 scheme submap
+
+curve 12760 12759 12756 12755 15576 15577 interval 7
+surf 294 290 2906 scheme pave
+surf 524 2588 3807 2263 2676 5218 3421 2619 688 2712 2897 518 2672 1566 2573 scheme submap
+
+curve 12879 12880 13411 13412 interval 7
+surf 2910 3352 scheme pave
+surf 691 297 2729 88 2659 1323 3742 2761 1317 2721 scheme submap
+
+# outer void
+surf 5000 scheme pave
+surf 5000 sizing function linear
+
+# wall
+surf 4915 scheme submap
+
+# tubes in spokes
+curve 16438 16437 interval 7
+curve 739 interval 14
+surf 3271 327 scheme pave
+surf 1761 1830 scheme submap
+
+curve 77 interval 14
+curve 12864 12863 interval 7
+surf 39 569 scheme pave
+surf 1938 1882 scheme submap
+
+curve 16388 16387 interval 7
+curve 1196 interval 14
+surf 5810 563 scheme pave
+surf 2049 1986 scheme submap
+
+curve 2402 4112 interval 14
+surf 1090 5305 scheme pave
+surf 2044 1971 scheme submap
+
+# bottom right
+curve 3746 3866 interval 8
+curve 16679 16680 17128 17129 17062 17061 16906 16905 interval 4
+curve 3896 4189 4103 interval 14
+curve 16432 16433 16443 16444 16407 16408 interval 7
+surf 1776 5295 1957 6002 1926 3626 1731 3857 1839 2147 1872 5300 scheme pave
+surf 1855 1791 1741 2014 1966 1920 scheme submap
+
+curve 4148 interval 14
+surf 3863 scheme pave
+surf 1991 scheme submap
+
+curve 348 interval 16
+surf 1290 size 3
+surf 1290 1833 scheme pave
+
+# top right
+curve 16810 16811 15507 15506 16983 16982 17160 17159 interval 4
+curve 3824 4064 interval 8
+curve 16416 16417 15508 15509 16440 16439 16391 16390 16400 16401 interval 7
+curve 3992 interval 14
+surf 1812 5611 2047 2419 1896 4154 1852 3450 1818 5804 1945 2125 scheme pave
+surf 1878 1824 1757 2033 1964 1907 scheme submap
+
+curve 16385 16386 interval 7
+surf 3276 scheme pave
+surf 2058 scheme submap
+
+curve 16091 16092 interval 8
+surf 3867 size 3
+surf 3867 1888 scheme pave
+
+# top left
+curve 2486 4220 2576 3818 interval 8
+curve 16881 16882 17163 17162 interval 4
+curve 16410 16409 interval 7
+curve 4212 2577 3918 3673 2491 interval 14
+curve 16079 16080 16101 16100 16122 16121 16136 16135 interval 7
+surf 1780 1725 1977 1932 1813 5664 3445 1177 2029 2491 5475 1133 scheme pave
+surf 1915 2024 1804 1870 1734 2002 scheme submap
+
+curve 16422 16423 interval 7
+surf 2966 scheme pave
+surf 1843 scheme submap
+
+curve 16114 16115 interval 8
+surf 3415 size 3
+surf 3415 1786 scheme pave
+
+# bottom left
+curve 2397 3758 4129 interval 8
+curve 16985 16984 17191 17190 16703 16702 interval 4
+curve 3980 4181 interval 14
+curve 16403 16402 16441 16442 16430 16431 13348 13347 interval 7
+surf 1904 5937 1981 2958 1782 5934 2026 3265 4144 2000 1088 1754 scheme pave
+surf 1899 1950 2008 1748 1802 1860 scheme submap
+
+curve 13343 13344 interval 7
+surf 1018 scheme pave
+surf 1944 scheme submap
+
+curve 16103 16104 interval 8
+surf 2880 size 3
+surf 2880 1768 scheme pave
+
+# x-void
+surf 4455 scheme pave
+
+# containment vessel
+surf 1359 size 8
+surf 1359 scheme pave
+
+# containment shielding
+surf 5329 size 12
+surf 5329 scheme pave
+
+# volume meshing
+set parallel meshing on
+
+# sweep submappable volumes
+volume all except 466 327 scheme sweep vector 0 0 -1
+
+# containment vessel
+surf 1360 scheme pave
+
+# how many errors before meshing
+list errors
+reset errors
+comment "graphics will be off during meshing"
+pause
+
+graphics off
+
+# mesh the core
+mesh vol all except vol 466 825 327
+
+### don't mesh the rest for now ###
+
+# mesh the rest
+# top
+vol 466 scheme sweep source surf all in vol 466 except surf 2921 2922 target surf 2922
+## volume 466 sweep smooth linear
+## mesh vol 466
+#surf 2922 smoo schem mean
+#smoo surf 2922
+
+# containment shield
+surf 5328 scheme pave
+vol 825 scheme sweep source surf 5329 target surf 5328
+## volume 825 sweep smooth linear
+## mesh vol 825
+
+# bottom
+vol 327 scheme sweep source surf all in vol 327 except surf 2114 2116 target surf 2116
+## volume 327 sweep smooth linear
+## mesh vol 327
+
+# write it all out
+export parallel 'inl.pcamal.g' overwrite
+
+graphics on
+
+# how many errors after meshing
+list errors
+
