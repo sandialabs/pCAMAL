@@ -261,6 +261,9 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   sweeper.get_mesh( num_points_out, x_coor_m, y_coor_m, z_coor_m,
                     num_hexes, connect_m );
 
+  // convert connectivity to exodus (PATRAN) order
+  ConvertToPatranOrder( num_hexes, connect_m );
+
   // Get mesh quality
   PCHexMeshQuality hmq( x_coor_m, y_coor_m, z_coor_m, 
                         num_hexes, connect_m, 
@@ -270,11 +273,11 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   q_mesh[2] = hmq.getMaxQuality();
   q_mesh[3] = hmq.getMom2Quality();
 
-    if ( verbose > 1 )
+  if ( verbose > 1 )
     {
-    cout <<  "Mesh quality ("
+    cout <<  "Mesh quality ( "
          << qualityName.c_str()
-         << ") of subdomain "
+         << " ) of subdomain "
          << vol_id
          << ":"
          << " min= "
@@ -287,9 +290,6 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
          << sqrt( q_mesh[3] - q_mesh[1] * q_mesh[1] )
          << endl;
     }
-
-  // convert connectivity to exodus (PATRAN) order
-  ConvertToPatranOrder( num_hexes, connect_m );
 
   // Write mesh
   WriteLocalExodusMesh( pc_input, vol_id, num_points, node_ids, 
@@ -412,7 +412,7 @@ int main(int argc, char **argv) {
   int myrank, nproc, nsub, nmesh;
   char filein[50];
   char fileout[50];
-  bool verbose = 0;
+  int verbose = 0;
   time_t t0, t1;
   struct timeval tv0, tv1;
 
@@ -507,7 +507,7 @@ int main(int argc, char **argv) {
       int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
                                                 num_node_sets, num_side_sets,
                                                 num_points_out, num_hexes,
-                                                q_mesh, PCAMAL_QUALITY_STRETCH,
+                                                q_mesh, PCAMAL_QUALITY_MAX_ASPECT_FROBENIUS,
                                                 verbose );
 
       // Update local statistics
