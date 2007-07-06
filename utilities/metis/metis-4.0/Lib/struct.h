@@ -8,8 +8,13 @@
  * Started 9/26/95
  * George
  *
- * $Id: struct.h,v 1.1 2007-07-06 22:38:42 mbsteph Exp $
+ * $Id: struct.h,v 1.2 2007-07-06 22:51:40 mbsteph Exp $
  */
+
+#ifndef METIS_STRUCT_H
+#define METIS_STRUCT_H
+
+#include "defs.h"
 
 /* Undefine the following #define in order to use short int as the idxtype */
 #define IDXTYPE_INT
@@ -246,6 +251,4 @@ struct vpwgtdef {
 
 typedef struct vpwgtdef VPInfoType;
 
-
-
-
+#endif /* METIS_STRUCT_H */

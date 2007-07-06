@@ -8,10 +8,12 @@
  * Started 9/25/94
  * George
  *
- * $Id: macros.h,v 1.1 2007-07-06 22:38:42 mbsteph Exp $
+ * $Id: macros.h,v 1.2 2007-07-06 22:51:40 mbsteph Exp $
  *
  */
 
+#ifndef METIS_MACROS
+#define METIS_MACROS
 
 /*************************************************************************
 * The following macro returns a random number in the specified range
@@ -141,3 +143,5 @@
 #else
 #   define ASSERTP(expr, msg) ;
 #endif 
+
+#endif /* METIS_MACROS */

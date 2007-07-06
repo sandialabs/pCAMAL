@@ -8,9 +8,12 @@
  * Started 8/27/94
  * George
  *
- * $Id: defs.h,v 1.1 2007-07-06 22:38:41 mbsteph Exp $
+ * $Id: defs.h,v 1.2 2007-07-06 22:51:40 mbsteph Exp $
  *
  */
+
+#ifndef METIS_DEFS
+#define METIS_DEFS
 
 #define METISTITLE              "  METIS 4.0.1 Copyright 1998, Regents of the University of Minnesota\n\n"
 #define MAXLINE			1280000
@@ -159,3 +162,5 @@
 #define DBG_MOVEINFO	32		/* Show info on communication during folding */
 #define DBG_KWAYPINFO	64		/* Show info on communication during folding */
 #define DBG_SEPINFO	128		/* Show info on communication during folding */
+
+#endif /* METIS_DEFS */

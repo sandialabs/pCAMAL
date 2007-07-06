@@ -8,9 +8,12 @@
  * Started 10/19/95
  * George
  *
- * $Id: proto.h,v 1.1 2007-07-06 22:38:42 mbsteph Exp $
+ * $Id: proto.h,v 1.2 2007-07-06 22:51:40 mbsteph Exp $
  *
  */
+
+#ifndef METIS_PROTO_H
+#define METIS_PROTO_H
 
 /* balance.c */
 void Balance2Way(CtrlType *, GraphType *, int *, float);
@@ -503,3 +506,4 @@ int VerifyPartmC(int, int, idxtype *, idxtype *, idxtype *, idxtype *, int, floa
 void Test_ND(int, idxtype *, idxtype *);
 int VerifyND(int, idxtype *, idxtype *);
 
+#endif /* METIS_PROTO_H */

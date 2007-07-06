@@ -8,9 +8,12 @@
  * Started 10/2/97
  * George
  *
- * $Id: rename.h,v 1.1 2007-07-06 22:38:42 mbsteph Exp $
+ * $Id: rename.h,v 1.2 2007-07-06 22:51:40 mbsteph Exp $
  *
  */
+
+#ifndef METIS_RENAME
+#define METIS_RENAME
 
 /* balance.c */
 #define Balance2Way			__Balance2Way
@@ -413,6 +416,4 @@
 #define log2				__log2
 
 
-
-
-
+#endif /* METIS_RENAME */
