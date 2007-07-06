@@ -9,11 +9,11 @@
  * Started 7/25/97
  * George
  *
- * $Id: graph.c,v 1.1 2007-07-06 22:38:41 mbsteph Exp $
+ * $Id: graph.c,v 1.2 2007-07-06 22:50:34 mbsteph Exp $
  *
  */
 
-#include <metis.h>
+#include "metis.h"
 
 /*************************************************************************
 * This function sets up the graph from the user input

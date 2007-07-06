@@ -8,11 +8,11 @@
  * Started 8/28/94
  * George
  *
- * $Id: graphchk.c,v 1.1 2007-07-06 22:38:45 mbsteph Exp $
+ * $Id: graphchk.c,v 1.2 2007-07-06 22:54:47 mbsteph Exp $
  *
  */
 
-#include <metis.h>
+#include "metis.h"
 
 
 

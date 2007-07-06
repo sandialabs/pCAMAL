@@ -9,11 +9,11 @@
  * Started 11/4/97
  * George
  *
- * $Id: estmem.c,v 1.1 2007-07-06 22:38:41 mbsteph Exp $
+ * $Id: estmem.c,v 1.2 2007-07-06 22:50:34 mbsteph Exp $
  *
  */
 
-#include <metis.h>
+#include "metis.h"
 
 /*************************************************************************
 * This function computes how much memory will be required by the various

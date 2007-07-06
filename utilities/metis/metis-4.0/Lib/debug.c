@@ -8,11 +8,11 @@
  * Started 7/24/97
  * George
  *
- * $Id: debug.c,v 1.1 2007-07-06 22:38:41 mbsteph Exp $
+ * $Id: debug.c,v 1.2 2007-07-06 22:50:34 mbsteph Exp $
  *
  */
 
-#include <metis.h>
+#include "metis.h"
 
 /*************************************************************************
 * This function computes the cut given the graph and a where vector

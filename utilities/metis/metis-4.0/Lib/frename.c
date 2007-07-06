@@ -8,11 +8,11 @@
  * Started 9/15/97
  * George
  *
- * $Id: frename.c,v 1.1 2007-07-06 22:38:41 mbsteph Exp $
+ * $Id: frename.c,v 1.2 2007-07-06 22:50:34 mbsteph Exp $
  *
  */
 
-#include <metis.h>
+#include "metis.h"
 
 
 void METIS_PARTGRAPHRECURSIVE(int *nvtxs, idxtype *xadj, idxtype *adjncy, idxtype *vwgt, idxtype *adjwgt, int *wgtflag, int *numflag, int *nparts, int *options, int *edgecut, idxtype *part)

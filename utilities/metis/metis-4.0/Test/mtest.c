@@ -9,11 +9,11 @@
  * Started 9/18/98
  * George
  *
- * $Id: mtest.c,v 1.1 2007-07-06 22:38:46 mbsteph Exp $
+ * $Id: mtest.c,v 1.2 2007-07-06 22:55:45 mbsteph Exp $
  *
  */
 
-#include <metis.h>
+#include "metis.h"
 
 
 

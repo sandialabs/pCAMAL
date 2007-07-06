@@ -8,10 +8,10 @@
  * Started 7/28/97
  * George
  *
- * $Id: mkwayrefine.c,v 1.1 2007-07-06 22:38:42 mbsteph Exp $
+ * $Id: mkwayrefine.c,v 1.2 2007-07-06 22:50:34 mbsteph Exp $
  */
 
-#include <metis.h>
+#include "metis.h"
 
 
 /*************************************************************************

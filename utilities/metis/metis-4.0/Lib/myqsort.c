@@ -9,10 +9,10 @@
  * Started 10/18/96
  * George
  * 
- * $Id: myqsort.c,v 1.1 2007-07-06 22:38:42 mbsteph Exp $
+ * $Id: myqsort.c,v 1.2 2007-07-06 22:50:35 mbsteph Exp $
  */
 
-#include <metis.h>			/* only for type declarations */
+#include "metis.h"			/* only for type declarations */
 
 #define		THRESH		1	/* threshold for insertion */
 #define		MTHRESH		6	/* threshold for median */

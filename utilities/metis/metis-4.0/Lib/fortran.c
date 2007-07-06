@@ -8,11 +8,11 @@
  * Started 8/19/97
  * George
  *
- * $Id: fortran.c,v 1.1 2007-07-06 22:38:41 mbsteph Exp $
+ * $Id: fortran.c,v 1.2 2007-07-06 22:50:34 mbsteph Exp $
  *
  */
 
-#include <metis.h>
+#include "metis.h"
 
 
 /*************************************************************************
