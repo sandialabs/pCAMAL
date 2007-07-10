@@ -39,6 +39,6 @@ TARGET_LINK_LIBRARIES(partnmesh metis)
 ADD_EXECUTABLE(graphchk ${GRAPHCHK_SRC})
 TARGET_LINK_LIBRARIES(graphchk metis)
 
-INSTALL_TARGETS(/eng_sci/cubit/metis/metis-4.0/bin 
+INSTALL_TARGETS(/bin/${ARCH_OS}
                 pmetis kmetis oemetis onmetis mesh2dual mesh2nodal 
 		partdmesh partnmesh graphchk)

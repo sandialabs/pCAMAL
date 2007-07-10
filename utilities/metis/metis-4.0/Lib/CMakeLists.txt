@@ -17,6 +17,6 @@ SET(METIS_LIB_HDR defs.h  macros.h  metis.h  proto.h  rename.h  struct.h)
 ADD_LIBRARY(metis ${METIS_LIB_SRC} ${METIS_LIB_HDR})
 TARGET_LINK_LIBRARIES(metis m)
 
-INSTALL_FILES(/eng_sci/cubit/metis/metis-4.0/include FILES ${METIS_LIB_HDR})
+INSTALL_FILES(/include FILES ${METIS_LIB_HDR})
 
-INSTALL_TARGETS(/eng_sci/cubit/metis/metis-4.0/lib metis)
+INSTALL_TARGETS(/lib/${ARCH_OS} metis)
