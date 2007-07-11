@@ -8,7 +8,7 @@
  * Started 10/2/97
  * George
  *
- * $Id: rename.h,v 1.1 2007-07-10 21:53:59 mbsteph Exp $
+ * $Id: rename.h,v 1.2 2007-07-11 01:55:06 mbsteph Exp $
  *
  */
 

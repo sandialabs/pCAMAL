@@ -8,7 +8,7 @@
  * Started 10/19/95
  * George
  *
- * $Id: proto.h,v 1.2 2007-07-06 22:51:40 mbsteph Exp $
+ * $Id: proto.h,v 1.3 2007-07-11 01:55:06 mbsteph Exp $
  *
  */
 
@@ -462,7 +462,7 @@ double drand48();
 void srand48(long);
 int ispow2(int);
 void InitRandom(int);
-int log2(int);
+/* int log2(int); */
 
 
 
