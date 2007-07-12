@@ -1,6 +1,6 @@
 #!/bin/tcsh
 #PBS -N pcamal 
-#PBS -l nodes=10:ppn=2,walltime=1:00:00 
+#PBS -l nodes=20:ppn=2,walltime=1:00:00 
 
 # clean out module defaults (for now anyway)
 module purge
@@ -17,6 +17,6 @@ set mpiexec_ops="-pernode"
 
 # qsub 
 module load torque
-cd /home/pppebay/share-src/pcamal/examples/inl
-mpiexec -transform-hostname='s/$/-ib/g' pcamal_proto 612 reactor.pcamal.g meshed_reactor
+cd /home/pppebay/cvs/pcamal/examples/inl
+mpiexec -transform-hostname='s/$/-ib/g' pcamal_proto 612 dense_reactor.pcamal.g meshed_dense_reactor
 
