@@ -18,5 +18,5 @@ set mpiexec_ops="-pernode"
 # qsub 
 module load torque
 cd /home/pppebay/cvs/pcamal/examples/inl
-mpiexec -transform-hostname='s/$/-ib/g' pcamal_proto 612 dense_reactor.pcamal.g meshed_dense_reactor
+mpiexec -transform-hostname='s/$/-ib/g' pcamal_proto 943 dense_reactor.pcamal.g meshed_dense_reactor
 
