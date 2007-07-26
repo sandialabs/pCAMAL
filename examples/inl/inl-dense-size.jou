@@ -1,0 +1,19 @@
+## these are the size values to produce the dense_reactor.pcamal.g mesh
+
+#{INTERVAL4   =  4}
+#{INTERVAL6   =  6}
+#{INTERVAL7   =  7}
+#{INTERVAL8   =  8}
+#{INTERVAL9   =  9}
+#{INTERVAL12  = 12}
+#{INTERVAL14  = 14}
+#{INTERVAL16  = 16}
+#{INTERVAL18  = 18}
+#{INTERVAL8H  = INTERVAL8/2}
+#{INTERVAL12H = INTERVAL12/2}
+#{INTERVAL14H = INTERVAL14/2}
+#{SIZE3  =  3}
+#{SIZE4  =  4}
+#{SIZE6  =  6}
+#{SIZE8  =  8}
+#{SIZE12 = 12}

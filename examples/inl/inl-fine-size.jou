@@ -1,0 +1,19 @@
+## these are the size values to produce the fine_reactor.pcamal.g mesh
+
+#{INTERVAL4   =  4}
+#{INTERVAL6   =  6}
+#{INTERVAL7   =  7}
+#{INTERVAL8   =  8}
+#{INTERVAL9   =  9}
+#{INTERVAL12  = 24}
+#{INTERVAL14  = 28}
+#{INTERVAL16  = 32}
+#{INTERVAL18  = 36}
+#{INTERVAL8H  = INTERVAL8/2}
+#{INTERVAL12H = INTERVAL12/2}
+#{INTERVAL14H = INTERVAL14/2}
+#{SIZE3  =  3}
+#{SIZE4  =  4}
+#{SIZE6  =  4}
+#{SIZE8  =  4}
+#{SIZE12 =  4}
