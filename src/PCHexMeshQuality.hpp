@@ -34,25 +34,43 @@
 #define PCAMAL_QUALITY_AREA 28
 #define PCAMAL_QUALITY_ASPECT_BETA 29
 
+typedef double (*QualityType)( int, double[][3] );
+
 class PCHexMeshQuality
 {
 public:
-  PCHexMeshQuality( double* x_coor, double* y_coor, double* z_coor,
-		    int num_hexes, int* connect, 
-		    int& qualityIndex, std::string& qualityName );
+  PCHexMeshQuality( int qualID );
+
+  int Execute( int nHexes, double* x_coor, double* y_coor, double* z_coor, int* connect );
 
   virtual ~PCHexMeshQuality() {};
 
   double getMinQuality() const {return this->min;};
   double getMaxQuality() const {return this->max;};
-  double getMeanQuality() const {return this->mean;};
-  double getMom2Quality() const {return this->mom2;};
+  double getSumValuesQuality() const {return this->sum;};
+  double getSumSquaresQuality() const {return this->sum2;};
+  int getNumberHexes() const {return this->nHexes;};
+  int getQualityID() const {return this->qualID;};
+  int getMinQualityID() const {return this->minID;};
+  int getMaxQualityID() const {return this->maxID;};
+  std::string getQualityName() const {return this->qualName;};
+
+  static std::string qualIDToQualityName( int qualID );
 
 private:
   double min;
   double max;
-  double mean;
-  double mom2;
+  double sum;
+  double sum2;
+
+  int nHexes;
+  int qualID;
+  int minID;
+  int maxID;
+
+  QualityType qualFct;
+
+  std::string qualName;
 };
 
 #endif // PC_HEX_MESH_QUALITY_HPP

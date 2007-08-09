@@ -5,14 +5,12 @@
 #include <cmath>
 #include <string>
 #include <iostream>
-
+#include <fstream>
 #include "PCExodusFile.hpp"
 #include "PCMLSweeper.hpp"
 #include "PCHexMeshQuality.hpp"
 
 using namespace std;
-
-string qualityName; 
 
 void ConvertToPatranOrder(int num_hexes, int* connect)
 {
@@ -30,18 +28,18 @@ void ConvertToPatranOrder(int num_hexes, int* connect)
   }
 }
 
-void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
-                           int num_points_in, int* node_ids,
+void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_ID,
+                           int num_points_in, int* node_IDs,
                            int num_points_out, int num_hexes, 
                            int num_node_sets, int num_side_sets,
                            double* x_coor, double* y_coor, double* z_coor, 
-                           int* connect, int sweep_id, int blk_id,
+                           int* connect, int sweep_ID, int blk_ID,
                            int num_nodes_elem, char* fileout, int verbose ) {
   // Write local Exodus II output file
   if ( verbose )
     {
     cout << "Writing Exodus II mesh " 
-         << sweep_id 
+         << sweep_ID 
          << " with " 
          << num_points_out 
          << " points and " 
@@ -50,8 +48,7 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
     }
 
   char filename[strlen( fileout ) + 10];
-  sprintf( filename, "%s.vol%03d.g", fileout, sweep_id );
-
+  sprintf( filename, "%s.vol%03d.g", fileout, sweep_ID );
 
   PCExodusFile exo_out( filename, pce::create );
   exo_out.put_param( num_points_out, num_hexes, num_node_sets, num_side_sets );
@@ -62,7 +59,7 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
     int new_node_sets = 0;
     int ns_len = 0;
     int ns_df_len = 0;
-    int ns_ids[num_node_sets];
+    int ns_IDs[num_node_sets];
     int ns_cnts[num_node_sets];
     int ns_df_cnts[num_node_sets];
     int ns_ptrs[num_node_sets];
@@ -72,10 +69,10 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
     if (num_node_sets > 0)
     {
       new_node_sets = num_node_sets;
-      if (pc_input->get_node_sets(new_node_sets, ns_ids, ns_cnts, ns_df_cnts, 
+      if (pc_input->get_node_sets(new_node_sets, ns_IDs, ns_cnts, ns_df_cnts, 
                                   ns_ptrs, ns_df_ptrs, ns_list, ns_df_list))
       {
-        exo_out.put_node_sets(num_points_in, node_ids, ns_ids, 
+        exo_out.put_node_sets(num_points_in, node_IDs, ns_IDs, 
                               ns_cnts, ns_df_cnts, ns_ptrs, ns_df_ptrs, 
                               ns_list, ns_df_list);
       }
@@ -91,7 +88,7 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
     // read/modify/write side set if any from input file
   if (num_side_sets > 0) {
     int new_side_sets = num_side_sets;
-    int ss_id_array[num_side_sets];
+    int ss_ID_array[num_side_sets];
     int ss_cnts_array[num_side_sets];
     int ss_df_cnts_array[num_side_sets];
     int ss_ptrs[num_side_sets];
@@ -101,14 +98,14 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
     int* ss_side_list;
     int* ss_conn;
     double* ss_df_list;
-    if (pc_input->get_side_sets( vol_id, new_side_sets, num_el,
-                                 ss_conn, ss_id_array, ss_cnts_array,
+    if (pc_input->get_side_sets( vol_ID, new_side_sets, num_el,
+                                 ss_conn, ss_ID_array, ss_cnts_array,
                                  ss_df_cnts_array, ss_ptrs, ss_df_ptrs,
                                  ss_list, ss_side_list, ss_df_list ))
     {
-      exo_out.put_side_sets( num_points_in, node_ids, num_el, ss_conn, 
+      exo_out.put_side_sets( num_points_in, node_IDs, num_el, ss_conn, 
                              num_hexes, connect, 
-                             ss_id_array, ss_cnts_array, 
+                             ss_ID_array, ss_cnts_array, 
                              ss_df_cnts_array, ss_ptrs, ss_df_ptrs, 
                              ss_list, ss_side_list, ss_df_list );
     }
@@ -122,21 +119,21 @@ void WriteLocalExodusMesh( PCExodusFile* pc_input, int vol_id,
     delete [] ss_list;
   }
 
-  exo_out.put_hex_blk( blk_id, num_nodes_elem, num_hexes, connect );
+  exo_out.put_hex_blk( blk_ID, num_nodes_elem, num_hexes, connect );
   exo_out.put_coor( num_points_out, x_coor, y_coor, z_coor );
 }
 
-int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id, 
-                              char* fileout, 
-                              int num_node_sets, int num_side_sets,
-                              int& num_points_out, int& num_hexes,
-                              double* q_mesh, int qualityIndex, 
-                              int verbose ) {
+int ReadSweepWriteSubdomain( PCExodusFile* pc_input, int vol_ID, 
+                             char* fileout, 
+                             int num_node_sets, int num_side_sets,
+                             int& num_points_out, int& num_hexes,
+                             double* q_stats, int* q_IDs,
+			     int qualID, int verbose ) {
   // Read sweep subdomain parameters
-  int block_id, sweep_id, num_quads, nodes_per_hex;
-  pc_input->read_sweep_prop(vol_id, block_id, sweep_id, num_quads,
+  int block_ID, sweep_ID, num_quads, nodes_per_hex;
+  pc_input->read_sweep_prop(vol_ID, block_ID, sweep_ID, num_quads,
                             nodes_per_hex);
-  if ( ! sweep_id )
+  if ( ! sweep_ID )
     return 0;
   
   // Read coordinates
@@ -144,9 +141,9 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   double* x_coor = NULL;
   double* y_coor = NULL;
   double* z_coor = NULL;
-  int* node_ids  = NULL;
-  pc_input->read_sweep_coord(vol_id, num_points, x_coor, y_coor, z_coor,
-                             node_ids);
+  int* node_IDs  = NULL;
+  pc_input->read_sweep_coord(vol_ID, num_points, x_coor, y_coor, z_coor,
+                             node_IDs);
   if ( verbose > 1 )
     {
     cout <<  "\n			 ---Coordinates---" << endl;
@@ -165,13 +162,13 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   
   // Read connectivity
   int num_src_surf, num_lnk_surf, num_tgt_surf;
-  int num_surfs = pc_input->read_sweep_surf_prop(vol_id, num_src_surf, 
+  int num_surfs = pc_input->read_sweep_surf_prop(vol_ID, num_src_surf, 
                                                  num_lnk_surf, num_tgt_surf);
   if ( verbose )
     {
     cout <<  endl 
          << "Surface information for subdomain " 
-         << vol_id
+         << vol_ID
          << ":"
          << endl
          <<  "  number sources = "
@@ -189,14 +186,14 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
     }
   
   int num_surf_quads[num_surfs];
-  pc_input->read_sweep_surf_size( vol_id, num_surfs, num_surf_quads );
+  pc_input->read_sweep_surf_size( vol_ID, num_surfs, num_surf_quads );
   int num_tgt_quads = 0;
   for ( int i = 0; i < num_src_surf; ++i ) num_tgt_quads += num_surf_quads[i];
   if ( verbose )
     {
     cout <<  endl 
          << "Number of quads/surface for subdomain "
-         << vol_id 
+         << vol_ID 
          << endl
          <<  "Surface  Quads" 
          << endl;
@@ -211,7 +208,7 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
     }
   
   int* connect = new int[num_quads * 4];
-  pc_input->read_sweep_conn( vol_id, num_points, num_quads, node_ids, connect );
+  pc_input->read_sweep_conn( vol_ID, num_points, num_quads, node_IDs, connect );
   if ( verbose > 1 ) 
     {
     cout <<  endl 
@@ -264,45 +261,50 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
   // convert connectivity to exodus (PATRAN) order
   ConvertToPatranOrder( num_hexes, connect_m );
 
-  // Get mesh quality
-  PCHexMeshQuality hmq( x_coor_m, y_coor_m, z_coor_m, 
-                        num_hexes, connect_m, 
-                        qualityIndex, qualityName );
-  q_mesh[0] = hmq.getMinQuality();
-  q_mesh[1] = hmq.getMeanQuality();
-  q_mesh[2] = hmq.getMaxQuality();
-  q_mesh[3] = hmq.getMom2Quality();
+  // Calculate mesh quality statistics
+  PCHexMeshQuality hmq( qualID );
+  hmq.Execute( num_hexes, x_coor_m, y_coor_m, z_coor_m, connect_m );
+  q_stats[0] = hmq.getMinQuality();
+  q_stats[1] = hmq.getMaxQuality();
+  q_stats[2] = hmq.getSumValuesQuality();
+  q_stats[3] = hmq.getSumSquaresQuality();
+  q_IDs[0] = hmq.getMinQualityID();
+  q_IDs[1] = hmq.getMaxQualityID();
 
-  if ( verbose > 1 )
+  if ( verbose > 0 ) 
     {
     cout <<  "Mesh quality ( "
-         << qualityName.c_str()
+         << hmq.getQualityName()
          << " ) of subdomain "
-         << vol_id
+         << vol_ID
          << ":"
          << " min= "
-         << q_mesh[0]
-         << " mean= "
-         << q_mesh[1]
+         << q_stats[0]
+         << " ( hex ID: "
+         << q_IDs[0]
+         << " ) mean= "
+         << q_stats[2] / num_hexes
          << " max= "
-         << q_mesh[2]
-         << " stdv= "
-         << sqrt( q_mesh[3] - q_mesh[1] * q_mesh[1] )
+         << q_stats[1]
+         << " ( hex ID: "
+         << q_IDs[1]
+         << " ) stdv= "
+         << ( q_stats[0] == q_stats[1] ? 0 : sqrt( fabs ( q_stats[3] / num_hexes - ( q_stats[2] * q_stats[2] ) / ( num_hexes * ( num_hexes - 1 ) ) ) ) )
          << endl;
     }
 
   // Write mesh
-  WriteLocalExodusMesh( pc_input, vol_id, num_points, node_ids, 
+  WriteLocalExodusMesh( pc_input, vol_ID, num_points, node_IDs, 
                         num_points_out, num_hexes, 
                         num_node_sets, num_side_sets,
                         x_coor_m, y_coor_m, z_coor_m,
-                        connect_m, sweep_id, block_id, nodes_per_hex,
+                        connect_m, sweep_ID, block_ID, nodes_per_hex,
                         fileout, verbose );
   delete [] connect_m;
   delete [] z_coor_m;  
   delete [] y_coor_m;
   delete [] x_coor_m;
-  delete [] node_ids;
+  delete [] node_IDs;
 
   return 1;
 }
@@ -310,14 +312,14 @@ int ReadSweepWriteSubdomains( PCExodusFile* pc_input, int vol_id,
 void CalculateGlobalStats( int nproc, 
 			   int* n_pts_g, int& n_pts_total, 
 			   int* n_hex_g, int& n_hex_total,
-                           double* q_mesh_g, double* q_mesh_total,
+                           double* q_stats_g, double* q_stats_total,
                            int verbose ) {
   n_pts_total = 0;
   n_hex_total = 0;
-  q_mesh_total[0] = DBL_MAX; // min
-  q_mesh_total[1] = 0.; // mean
-  q_mesh_total[2] = 0.; // max
-  q_mesh_total[3] = 0.; // mom2
+  q_stats_total[0] = DBL_MAX; // min
+  q_stats_total[1] = DBL_MIN; // max
+  q_stats_total[2] = 0.; // mean
+  q_stats_total[3] = 0.; // stdv
   
   if ( verbose )
     {
@@ -341,15 +343,15 @@ void CalculateGlobalStats( int nproc,
       }
     n_pts_total += n_pts_g[iproc];
     n_hex_total += n_hex_g[iproc];
-    q_mesh_total[1] += n_hex_g[iproc] * q_mesh_g[ix4 + 1];
-    q_mesh_total[3] += n_hex_g[iproc] * q_mesh_g[ix4 + 3];
+    q_stats_total[2] += n_hex_g[iproc] * q_stats_g[ix4 + 2];
+    q_stats_total[3] += n_hex_g[iproc] * q_stats_g[ix4 + 3];
 
-    if ( q_mesh_g[ix4] < q_mesh_total[0] ) q_mesh_total[0] = q_mesh_g[ix4];
+    if ( q_stats_g[ix4] < q_stats_total[0] ) q_stats_total[0] = q_stats_g[ix4];
     
-    if ( q_mesh_g[ix4 + 2] > q_mesh_total[2] ) q_mesh_total[2] = q_mesh_g[ix4 + 2];
+    if ( q_stats_g[ix4 + 1] > q_stats_total[1] ) q_stats_total[1] = q_stats_g[ix4 + 1];
     }
-  q_mesh_total[1] /= n_hex_total;
-  q_mesh_total[3] /= n_hex_total;
+  q_stats_total[3] = sqrt( q_stats_total[3] / n_hex_total - q_stats_total[1] * q_stats_total[1] / ( n_hex_total * ( n_hex_total - 1 ) ) );
+  q_stats_total[2] /= n_hex_total;
 }
 
 int BalanceLoad( int myrank, int nsub, int nproc, int* proc_assign, int verbose ) {
@@ -416,6 +418,10 @@ int main(int argc, char **argv) {
   time_t t0, t1;
   struct timeval tv0, tv1;
 
+  // Choose mesh quality function
+  int qualID = PCAMAL_QUALITY_MAX_ASPECT_FROBENIUS;
+  string qualName = PCHexMeshQuality::qualIDToQualityName( qualID ) ;
+
   if ( argc < 4 ) 
     {
     cout <<  "Usage: pcamal_proto <n_subdomains> <filein> <fileout>" << endl;
@@ -433,8 +439,11 @@ int main(int argc, char **argv) {
   MPI_Init( &argc, &argv );
   MPI_Comm_rank( MPI_COMM_WORLD, &myrank );
   MPI_Comm_size( MPI_COMM_WORLD, &nproc );
-  int n_pts_g[nproc], n_hex_g[nproc], proc_assign[nsub];
-  double q_mesh_g[4*nproc];
+  int n_pts_g[nproc], n_hex_g[nproc];
+  double q_stats_vals_g[4 * nproc];
+  int sub_IDs_g[nsub];
+  int q_min_IDs_g[nsub];
+  int q_max_IDs_g[nsub];
 
   if ( ! myrank ) 
     {
@@ -447,18 +456,14 @@ int main(int argc, char **argv) {
 	 << endl
          <<  "  number of available processors: "
 	 << nproc
-	 << endl;
-    }
-  
-  if ( BalanceLoad( myrank, nsub, nproc, proc_assign, 0 ) ) return 1;
-
-  if ( ! myrank ) 
-    {
-    cout <<  "  input file name: "
+         <<  "  input file name: "
 	 << filein
 	 << endl;
     }
   
+  int proc_assign[nsub];
+  if ( BalanceLoad( myrank, nsub, nproc, proc_assign, 0 ) ) return 1;
+
   // Open input file
   PCExodusFile pc_input( filein, pce::read );
   int num_blks, num_node_sets, num_side_sets;
@@ -480,16 +485,21 @@ int main(int argc, char **argv) {
   n_pts_l[0] = 0;
   n_hex_l[0] = 0;
 
-  double q_mesh_l[4];
-  q_mesh_l[0] = DBL_MAX; // min
-  q_mesh_l[1] = 0.; // mean
-  q_mesh_l[2] = 0.; // max
-  q_mesh_l[3] = 0.; // mom2
+  double q_stats_vals_l[4];
+  q_stats_vals_l[0] = DBL_MAX; // min
+  q_stats_vals_l[1] = DBL_MIN; // max
+  q_stats_vals_l[2] = 0.; // sum
+  q_stats_vals_l[3] = 0.; // sum2
+
+  int sub_IDs_l[nsub];
+  int q_min_IDs_l[nsub];
+  int q_max_IDs_l[nsub];
 
   // Visit each subdomain
-  for ( int vol_id = 0; vol_id < num_blks; ++ vol_id ) 
+  int ns_l = 0;
+  for ( int vol_ID = 0; vol_ID < num_blks; ++ vol_ID ) 
     {
-    if ( myrank == proc_assign[vol_id] ) 
+    if ( myrank == proc_assign[vol_ID] ) 
       {
       if ( verbose )
         {
@@ -498,35 +508,43 @@ int main(int argc, char **argv) {
              << "Process "
              << myrank
              << " to handle subdomain "
-             <<  vol_id
+             <<  vol_ID
              << "."
              << endl;
         }
-      int num_points_out, num_hexes;
-      double q_mesh[4];
-      int sweepable = ReadSweepWriteSubdomains( &pc_input, vol_id, fileout, 
-                                                num_node_sets, num_side_sets,
-                                                num_points_out, num_hexes,
-                                                q_mesh, PCAMAL_QUALITY_MAX_ASPECT_FROBENIUS,
-                                                verbose );
+      int num_points_out, num_hexes, q_IDs[2];
+      double q_stats_vals[4];
+      int sweepable = ReadSweepWriteSubdomain( &pc_input, vol_ID, 
+                                               fileout, 
+                                               num_node_sets, num_side_sets,
+                                               num_points_out, num_hexes,
+                                               q_stats_vals, q_IDs,
+                                               qualID, verbose );
 
-      // Update local statistics
-      // mean & mom2
-      q_mesh_l[1] = n_hex_l[0] * q_mesh_l[1] + num_hexes * q_mesh[1];
-      q_mesh_l[3] = n_hex_l[0] * q_mesh_l[3] + num_hexes * q_mesh[3];
+      // Update local statistics:
+      //   number of entities
       n_pts_l[0] += num_points_out;
       n_hex_l[0] += num_hexes;
-      q_mesh_l[1] /= n_hex_l[0];
-      q_mesh_l[3] /= n_hex_l[0];
+      //   sum & sum2
+      q_stats_vals_l[2] += q_stats_vals[2];
+      q_stats_vals_l[3] += q_stats_vals[3];
 
-      // min & max
-      if ( q_mesh[0] < q_mesh_l[0] ) q_mesh_l[0] = q_mesh[0];
-      if ( q_mesh[2] > q_mesh_l[2] ) q_mesh_l[2] = q_mesh[2];
+      q_stats_vals_l[1] /= n_hex_l[0];
+      q_stats_vals_l[3] /= n_hex_l[0];
+
+      // Indices and subdomains of min and max quality hexes
+      sub_IDs_l[ns_l] = vol_ID;
+      q_min_IDs_l[ns_l] = q_IDs[0];
+      q_max_IDs_l[ns_l ++] = q_IDs[1];
+
+      //    min & max
+      if ( q_stats_vals[0] < q_stats_vals_l[0] ) q_stats_vals_l[0] = q_stats_vals[0];
+      if ( q_stats_vals[1] > q_stats_vals_l[1] ) q_stats_vals_l[1] = q_stats_vals[1];
 
       if ( ! sweepable ) 
         {
         cout <<  "## Subdomain "
-             << vol_id
+             << vol_ID
              << " was not to be swept."
              << endl;
         continue;
@@ -536,20 +554,23 @@ int main(int argc, char **argv) {
 
   MPI_Gather( n_pts_l, 1, MPI_INTEGER, n_pts_g, 1, MPI_INTEGER, 0, MPI_COMM_WORLD );
   MPI_Gather( n_hex_l, 1, MPI_INTEGER, n_hex_g, 1, MPI_INTEGER, 0, MPI_COMM_WORLD );
-  MPI_Gather( q_mesh_l, 4, MPI_DOUBLE, q_mesh_g, 4, MPI_DOUBLE, 0, MPI_COMM_WORLD );
+  MPI_Gather( q_stats_vals_l, 4, MPI_DOUBLE, q_stats_vals_g, 4, MPI_DOUBLE, 0, MPI_COMM_WORLD );
+  MPI_Gather( sub_IDs_l, ns_l, MPI_INTEGER, sub_IDs_g, ns_l, MPI_INTEGER, 0, MPI_COMM_WORLD );
+  MPI_Gather( q_min_IDs_l, ns_l, MPI_INTEGER, q_min_IDs_g, ns_l, MPI_INTEGER, 0, MPI_COMM_WORLD );
+  MPI_Gather( q_max_IDs_l, ns_l, MPI_INTEGER, q_max_IDs_g, ns_l, MPI_INTEGER, 0, MPI_COMM_WORLD );
 
   // Just for the sake of synchronizing printouts:
   MPI_Barrier( MPI_COMM_WORLD );
-
+  
   if ( ! myrank ) 
     {
     int n_pts_total, n_hex_total;
-    double q_mesh_total[4];
+    double q_stats_vals_total[4];
     CalculateGlobalStats( nproc, 
                           n_pts_g, n_pts_total, 
                           n_hex_g, n_hex_total, 
-                          q_mesh_g, q_mesh_total, 
-			  1 );
+                          q_stats_vals_g, q_stats_vals_total,
+                          1 );
     cout <<  endl 
          << "# Global statistics:" 
          << endl
@@ -560,18 +581,36 @@ int main(int argc, char **argv) {
          << n_hex_total
          << endl
          <<  "  mesh quality ( "
-         << qualityName.c_str()
+         << qualName
          << " ):"
          << " min= "
-         << q_mesh_total[0]
+         << q_stats_vals_total[0]
          << " mean= "
-         << q_mesh_total[1]
+         << q_stats_vals_total[2]
          << " max= "
-         << q_mesh_total[2]
+         << q_stats_vals_total[1]
          << " stdv= "
-         << sqrt( q_mesh_total[3] - q_mesh_total[1] * q_mesh_total[1] )
+         << q_stats_vals_total[3]
          << endl;
     }
+
+  if ( ! myrank ) 
+      {
+      char qualFilename[strlen( fileout ) + 4];
+      sprintf( qualFilename, "%s.dat", fileout );
+      ofstream qualFile( qualFilename, ios::out );
+      qualFile << "# 1: subdomain  2: min q hex ID   3: max q hex ID \n";
+      for ( int i = 0; i < nsub; ++ i ) 
+        {
+        qualFile << sub_IDs_g[i]
+                 << "    "
+                 << q_min_IDs_g[i]
+                 << "    "
+                 << q_max_IDs_g[i]
+                 << endl;
+        }
+      qualFile.close();
+      }
   
   MPI_Finalize();
 
