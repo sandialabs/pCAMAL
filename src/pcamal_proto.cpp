@@ -271,7 +271,7 @@ int ReadSweepWriteSubdomain( PCExodusFile* pc_input, int vol_ID,
   q_IDs[0] = hmq.getMinQualityID();
   q_IDs[1] = hmq.getMaxQualityID();
 
-  if ( verbose > 0 ) 
+  if ( verbose ) 
     {
     cout <<  "Mesh quality ( "
          << hmq.getQualityName()
@@ -343,7 +343,7 @@ void CalculateGlobalStats( int nproc,
       }
     n_pts_total += n_pts_g[iproc];
     n_hex_total += n_hex_g[iproc];
-    q_stats_total[2] += n_hex_g[iproc] * q_stats_g[ix4 + 2];
+    q_stats_total[2] += q_stats_g[ix4 + 2];
     q_stats_total[3] += n_hex_g[iproc] * q_stats_g[ix4 + 3];
 
     if ( q_stats_g[ix4] < q_stats_total[0] ) q_stats_total[0] = q_stats_g[ix4];

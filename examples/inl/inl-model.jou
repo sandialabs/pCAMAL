@@ -8,7 +8,7 @@ graphics perspective off
 vol 466 327 vis off
 
 # sizing
-#{include(inl-dense-size.jou)}
+{include(inl-fine-size.jou)}
 volume all size {SIZE6}
 
 # seperators
@@ -505,7 +505,7 @@ surface 1360 scheme pave
 list errors
 reset errors
 comment "graphics will be off during meshing"
-pause
+#pause
 
 graphics off
 
