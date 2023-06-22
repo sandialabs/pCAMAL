@@ -1,0 +1,1 @@
+This repository contains an archive of pCAMAL, a wrapper around the CAMAL library to enable parallel execution.  CAMAL is included as part of the Cubit(r) software which can be licensed through Sandia National Labs. See https://cubit.sandia.gov/ for more information. pCAMAL is deprecated and this repository is here for archival purposes only.
